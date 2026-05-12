@@ -2,13 +2,9 @@ import { createGlobalStyle } from 'styled-components'
 
 export const GlobalStyles = createGlobalStyle`
   :root {
-    font-family:
-      'Helvetica Neue',
-      Helvetica,
-      Arial,
-      sans-serif;
-    color: #1e1512;
-    background: #f7f0e7;
+    font-family: ${({ theme }) => theme.typography.fontFamily.sans};
+    color: ${({ theme }) => theme.colors.text.body};
+    background: ${({ theme }) => theme.colors.background.base};
     font-synthesis: none;
     text-rendering: optimizeLegibility;
     -webkit-font-smoothing: antialiased;
@@ -26,14 +22,13 @@ export const GlobalStyles = createGlobalStyle`
   body {
     margin: 0;
     min-width: 320px;
-    background:
-      radial-gradient(circle at top left, #fffdf8 0%, #f7efe6 40%, #eee2d5 100%);
-    color: #1e1512;
+    background: ${({ theme }) => theme.colors.gradients.page};
+    color: ${({ theme }) => theme.colors.text.body};
   }
 
   ::selection {
-    background: rgba(93, 68, 54, 0.18);
-    color: #1e1512;
+    background: ${({ theme }) => theme.colors.effects.selection};
+    color: ${({ theme }) => theme.colors.text.bodyStrong};
   }
 
   a {
