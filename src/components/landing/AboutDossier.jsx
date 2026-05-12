@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
 import styled, { keyframes } from 'styled-components'
-import aboutSource from '../../../../content/about.md?raw'
+import aboutSource from '../../content/about.md?raw'
 import {
   BodyCopy,
   Container,
