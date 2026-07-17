@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import styled, { css, keyframes } from 'styled-components'
 import { Container, NavLink, PrimaryButton } from '../../styles/primitives'
 
@@ -8,6 +8,8 @@ const placeholderNavigation = [
   { label: 'Socials', glyph: '✧', placeholder: true },
   { label: 'Store', glyph: '♢', placeholder: true },
 ]
+const HEADER_COLLAPSE_Y = 120
+const HEADER_EXPAND_Y = 40
 
 export function PracticeStrip() {
   return (
@@ -42,9 +44,10 @@ export function Header({ navigation }) {
     typeof window === 'undefined' ? '#home' : window.location.hash || '#home',
   )
   const [isScrolled, setIsScrolled] = useState(() =>
-    typeof window === 'undefined' ? false : window.scrollY > 72,
+    typeof window === 'undefined' ? false : window.scrollY > HEADER_COLLAPSE_Y,
   )
   const [isSummoned, setIsSummoned] = useState(false)
+  const isScrolledRef = useRef(isScrolled)
   const isCondensed = isScrolled && !isSummoned
 
   useEffect(() => {
@@ -55,24 +58,54 @@ export function Header({ navigation }) {
   }, [])
 
   useEffect(() => {
-    const updateScrollState = () => setIsScrolled(window.scrollY > 72)
+    let animationFrame = 0
 
-    window.addEventListener('scroll', updateScrollState, { passive: true })
-    return () => window.removeEventListener('scroll', updateScrollState)
+    const commitScrollState = () => {
+      animationFrame = 0
+      const scrollY = Math.max(window.scrollY, 0)
+      const nextIsScrolled = isScrolledRef.current
+        ? scrollY > HEADER_EXPAND_Y
+        : scrollY > HEADER_COLLAPSE_Y
+
+      if (nextIsScrolled === isScrolledRef.current) return
+
+      isScrolledRef.current = nextIsScrolled
+      setIsScrolled(nextIsScrolled)
+
+      if (nextIsScrolled) setIsSummoned(false)
+    }
+
+    const scheduleScrollState = () => {
+      if (animationFrame) return
+      animationFrame = window.requestAnimationFrame(commitScrollState)
+    }
+
+    commitScrollState()
+    window.addEventListener('scroll', scheduleScrollState, { passive: true })
+    window.addEventListener('resize', scheduleScrollState, { passive: true })
+
+    return () => {
+      window.removeEventListener('scroll', scheduleScrollState)
+      window.removeEventListener('resize', scheduleScrollState)
+      if (animationFrame) window.cancelAnimationFrame(animationFrame)
+    }
   }, [])
 
   return (
-    <SiteHeader
-      $condensed={isCondensed}
-      onMouseEnter={() => setIsSummoned(true)}
-      onMouseLeave={() => setIsSummoned(false)}
-      onFocusCapture={() => setIsSummoned(true)}
-      onBlurCapture={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget)) setIsSummoned(false)
-      }}
-    >
-      <HeaderAura aria-hidden="true" />
-      <HeaderInner $maxWidth="100%" $condensed={isCondensed}>
+    <HeaderFrame>
+      <SiteHeader
+        $condensed={isCondensed}
+        onMouseEnter={() => {
+          if (isScrolled) setIsSummoned(true)
+        }}
+        onMouseLeave={() => setIsSummoned(false)}
+        onFocusCapture={() => setIsSummoned(true)}
+        onBlurCapture={(event) => {
+          if (!event.currentTarget.contains(event.relatedTarget)) setIsSummoned(false)
+        }}
+      >
+        <HeaderAura aria-hidden="true" />
+        <HeaderInner $maxWidth="100%" $condensed={isCondensed}>
         <BrandLink href="#home" aria-label="Bazil Bacchanalia Dazil home">
           <BrandMark aria-hidden="true" $condensed={isCondensed}>
             <BrandOrbit />
@@ -119,8 +152,9 @@ export function Header({ navigation }) {
           </HeaderBookLink>
         </HeaderActions>
 
-      </HeaderInner>
-    </SiteHeader>
+        </HeaderInner>
+      </SiteHeader>
+    </HeaderFrame>
   )
 }
 
@@ -287,11 +321,33 @@ const PracticeDiamond = styled.span`
   line-height: 1;
 `
 
+const HeaderFrame = styled.div`
+  height: calc(
+    ${({ theme }) => theme.layout.headerOffset} +
+      ${({ theme }) => theme.layout.controlMinHeight} + ${({ theme }) => theme.spacing.lg} +
+      ${({ theme }) => theme.borders.width.thin}
+  );
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.compact}) {
+    height: ${({ theme }) => theme.layout.compactHeaderOffset};
+  }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    height: calc(
+      ${({ theme }) => theme.layout.headerOffset} + 1.6rem +
+        ${({ theme }) => theme.borders.width.thin}
+    );
+  }
+`
+
 const SiteHeader = styled.header`
-  position: sticky;
+  position: fixed;
   top: calc(0.75rem + ${({ theme }) => theme.layout.safeArea.top});
+  right: 0;
+  left: 0;
   z-index: ${({ theme }) => theme.zIndex.sticky};
   overflow: hidden;
+  overflow-anchor: none;
   border-bottom: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
     ${({ theme }) => theme.colors.border.surfaceRaised};
   background:
@@ -397,7 +453,7 @@ const HeaderInner = styled(Container)`
     padding-block: ${({ theme }) => theme.spacing['2xl']} ${({ theme }) => theme.spacing.xl};
   }
 
-  @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) {
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     ${({ $condensed, theme }) =>
       $condensed &&
       css`
@@ -406,6 +462,16 @@ const HeaderInner = styled(Container)`
           'nav nav';
         grid-template-columns: minmax(0, 1fr) auto;
         gap: 0 ${theme.spacing.lg};
+        min-height: 4.25rem;
+        padding-block: ${theme.spacing.sm};
+      `}
+  }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    ${({ $condensed, theme }) =>
+      $condensed &&
+      css`
+        gap: ${theme.spacing.xl};
         min-height: 4.25rem;
         padding-block: ${theme.spacing.sm};
       `}
@@ -486,7 +552,7 @@ const BrandMark = styled.span`
     background: linear-gradient(180deg, transparent, ${({ theme }) => theme.colors.border.signal}, transparent);
   }
 
-  @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) {
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     width: ${({ $condensed }) => ($condensed ? '2.4rem' : '3.25rem')};
     transition:
       width ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
@@ -577,6 +643,7 @@ const BrandText = styled.span`
         white-space: nowrap;
       `}
   }
+
 `
 
 const HeaderActions = styled.div`
@@ -663,17 +730,33 @@ const Navigation = styled.nav`
       right: -0.28rem;
     }
 
+    @media (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
+      ${({ $condensed }) =>
+        $condensed &&
+        css`
+          max-height: 0;
+          margin: 0;
+          padding-block: 0;
+          overflow: hidden;
+          border-width: 0;
+          opacity: 0;
+          pointer-events: none;
+          transform: translateY(-0.45rem);
+        `}
+    }
+  }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    transition:
+      opacity ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
+      transform ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter};
+
     ${({ $condensed }) =>
       $condensed &&
       css`
-        max-height: 0;
-        margin: 0;
-        padding-block: 0;
-        overflow: hidden;
-        border-width: 0;
         opacity: 0;
         pointer-events: none;
-        transform: translateY(-0.45rem);
+        transform: translateY(-0.2rem) scale(0.985);
       `}
   }
 `
