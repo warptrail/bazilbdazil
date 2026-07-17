@@ -200,12 +200,6 @@ const ctaHueDrift = keyframes`
   }
 `
 
-const bookTextShift = keyframes`
-  to {
-    background-position: 200% 50%;
-  }
-`
-
 const PracticeStripRoot = styled.div`
   position: sticky;
   top: 0;
@@ -328,7 +322,7 @@ const HeaderFrame = styled.div`
       ${({ theme }) => theme.borders.width.thin}
   );
 
-  @media (max-width: ${({ theme }) => theme.layout.breakpoints.compact}) {
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     height: ${({ theme }) => theme.layout.compactHeaderOffset};
   }
 
@@ -382,6 +376,16 @@ const SiteHeader = styled.header`
     right: 0;
     background: linear-gradient(270deg, ${({ theme }) => theme.colors.accent.signal}, transparent);
   }
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    background:
+      radial-gradient(circle at 18% 80%, ${({ theme }) => theme.colors.effects.violetGlowSoft}, transparent 46%),
+      radial-gradient(circle at 90% 20%, ${({ theme }) => theme.colors.effects.cyanGlow}, transparent 38%),
+      ${({ theme }) => theme.colors.background.header};
+    box-shadow:
+      inset 0 1px 0 ${({ theme }) => theme.colors.effects.moonlightSoft},
+      0 0.75rem 2.5rem ${({ theme }) => theme.colors.background.canvas};
+  }
 `
 
 const HeaderAura = styled.div`
@@ -433,6 +437,23 @@ const HeaderInner = styled(Container)`
     pointer-events: none;
   }
 
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    gap: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.md};
+    min-height: ${({ theme }) => theme.layout.compactHeaderOffset};
+    padding: ${({ theme }) => theme.spacing.sm} max(
+      ${({ theme }) => theme.spacing.md},
+      ${({ theme }) => theme.layout.safeArea.right}
+    );
+
+    ${({ $condensed, theme }) =>
+      $condensed &&
+      css`
+        gap: 0 ${theme.spacing.sm};
+        min-height: 3.65rem;
+        padding-block: ${theme.spacing.xs};
+      `}
+  }
+
   &::before {
     left: ${({ theme }) => theme.spacing.sm};
     border-left: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
@@ -447,8 +468,12 @@ const HeaderInner = styled(Container)`
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
     grid-template-areas: 'brand nav actions';
-    grid-template-columns: minmax(17rem, auto) minmax(0, 1fr) minmax(7.5rem, auto);
-    gap: clamp(1.5rem, 4vw, 4.5rem);
+    grid-template-columns: minmax(15rem, auto) minmax(0, 1fr) minmax(7.5rem, auto);
+    gap: clamp(
+      ${({ theme }) => theme.spacing.lg},
+      2vw,
+      ${({ theme }) => theme.spacing['5xl']}
+    );
     min-height: calc(${({ theme }) => theme.layout.headerOffset} + 1.6rem);
     padding-block: ${({ theme }) => theme.spacing['2xl']} ${({ theme }) => theme.spacing.xl};
   }
@@ -507,6 +532,11 @@ const BrandLink = styled.a`
     outline-offset: ${({ theme }) => theme.layout.focusOffset};
     box-shadow: ${({ theme }) => theme.shadows.focusRing};
   }
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    gap: ${({ theme }) => theme.spacing.sm};
+    min-height: 2.5rem;
+  }
 `
 
 const BrandMark = styled.span`
@@ -538,6 +568,13 @@ const BrandMark = styled.span`
     left: 50%;
     pointer-events: none;
     transform: translate(-50%, -50%);
+  }
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    width: ${({ $condensed }) => ($condensed ? '1.85rem' : '2.25rem')};
+    transition:
+      width ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
+      transform ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter};
   }
 
   &::before {
@@ -615,9 +652,19 @@ const BrandText = styled.span`
     font-size ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
     letter-spacing ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter};
 
-  @media (max-width: ${({ theme }) => theme.layout.breakpoints.compact}) {
-    max-width: 8ch;
-    font-size: 0.95rem;
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    max-width: none;
+    font-size: ${({ $condensed }) => ($condensed ? '0.7rem' : '0.78rem')};
+    line-height: 1;
+    letter-spacing: ${({ theme }) => theme.typography.letterSpacing.editorial};
+    white-space: nowrap;
+  }
+
+  @media (max-width: 360px) {
+    max-width: 12ch;
+    font-size: ${({ $condensed }) => ($condensed ? '0.66rem' : '0.72rem')};
+    line-height: 0.92;
+    white-space: normal;
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
@@ -674,6 +721,7 @@ const HeaderActions = styled.div`
 const Navigation = styled.nav`
   grid-area: nav;
   display: flex;
+  container-type: inline-size;
   gap: 0;
   align-items: stretch;
   justify-content: flex-start;
@@ -696,13 +744,36 @@ const Navigation = styled.nav`
     display: none;
   }
 
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    max-height: 2.65rem;
+    margin-inline: 0;
+    padding: ${({ theme }) => theme.spacing.xs} 0 0;
+    border-top-color: ${({ theme }) => theme.colors.border.surfaceRaised};
+
+    ${({ $condensed }) =>
+      $condensed &&
+      css`
+        max-height: 0;
+        padding-block: 0;
+        overflow: hidden;
+        border-color: transparent;
+        opacity: 0;
+        pointer-events: none;
+        transform: translateY(-0.25rem);
+      `}
+  }
+
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) {
     position: relative;
     justify-content: stretch;
     gap: 0;
     width: auto;
     margin: 0;
-    padding: ${({ theme }) => theme.spacing.sm};
+    padding: clamp(
+      ${({ theme }) => theme.spacing.xs},
+      0.4vw,
+      ${({ theme }) => theme.spacing.sm}
+    );
     overflow: visible;
     border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
       ${({ theme }) => theme.colors.border.surfaceRaised};
@@ -913,17 +984,35 @@ const NavigationLink = styled(NavLink)`
       }
     `}
 
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    min-height: 2.25rem;
+    padding-inline: ${({ theme }) => theme.spacing.md};
+    font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  }
+
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) {
     flex: 1 1 0;
     justify-content: center;
     min-width: 0;
-    font-size: ${({ theme }) => theme.typography.fontSize.sm};
-    letter-spacing: ${({ theme }) => theme.typography.letterSpacing.editorial};
-    padding-inline: ${({ theme }) => theme.spacing.sm};
+    gap: clamp(${({ theme }) => theme.spacing.xs}, 0.45vw, ${({ theme }) => theme.spacing.sm});
+    padding-inline: clamp(
+      ${({ theme }) => theme.spacing.xs},
+      0.55vw,
+      ${({ theme }) => theme.spacing.sm}
+    );
+    font-size: clamp(0.68rem, 0.95vw, ${({ theme }) => theme.typography.fontSize.sm});
+    letter-spacing: clamp(0.04em, 0.1vw, ${({ theme }) => theme.typography.letterSpacing.editorial});
 
     & + & {
       border-left-color: ${({ theme }) => theme.colors.border.surface};
     }
+  }
+
+  @container (max-width: 42rem) {
+    gap: ${({ theme }) => theme.spacing.xs};
+    padding-inline: ${({ theme }) => theme.spacing.xs};
+    font-size: 0.68rem;
+    letter-spacing: 0.04em;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -957,11 +1046,16 @@ const NavigationGlyph = styled.span`
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.compact}) {
     display: none;
   }
+
+  @container (max-width: 42rem) {
+    font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  }
 `
 
 const NavigationLabel = styled.span`
   position: relative;
   z-index: 1;
+  min-width: 0;
   line-height: 1;
 `
 
@@ -991,6 +1085,7 @@ const HeaderBookLink = styled(PrimaryButton)`
   padding-inline: ${({ theme }) => theme.spacing.md};
   clip-path: polygon(0.45rem 0, calc(100% - 0.45rem) 0, 100% 0.45rem, 100% calc(100% - 0.45rem), calc(100% - 0.45rem) 100%, 0.45rem 100%, 0 calc(100% - 0.45rem), 0 0.45rem);
   border: 0;
+  color: ${({ theme }) => theme.colors.text.onAccent};
   background:
     radial-gradient(circle at 22% 0%, ${({ theme }) => theme.colors.effects.moonlight}, transparent 34%),
     linear-gradient(
@@ -1030,6 +1125,7 @@ const HeaderBookLink = styled(PrimaryButton)`
   @media (hover: hover) {
     &:hover {
       border: 0;
+      color: ${({ theme }) => theme.colors.text.onAccent};
       background:
         radial-gradient(circle at 22% 0%, ${({ theme }) => theme.colors.effects.moonlight}, transparent 34%),
         linear-gradient(
@@ -1050,6 +1146,12 @@ const HeaderBookLink = styled(PrimaryButton)`
     &:hover::before {
       transform: translateX(260%) rotate(18deg);
     }
+  }
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    min-width: ${({ $condensed }) => ($condensed ? '4.5rem' : '5rem')};
+    min-height: ${({ $condensed }) => ($condensed ? '2.35rem' : '2.55rem')};
+    padding-inline: ${({ theme }) => theme.spacing.md};
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
@@ -1098,33 +1200,11 @@ const HeaderBookLabel = styled.span`
   position: relative;
   z-index: 1;
   line-height: 1;
-  color: ${({ theme }) => theme.colors.text.onAccent};
-  background: linear-gradient(
-    90deg,
-    ${({ theme }) => theme.colors.text.onAccent} 0%,
-    ${({ theme }) => theme.colors.background.panelPlum} 22%,
-    ${({ theme }) => theme.colors.accent.ultraviolet} 42%,
-    ${({ theme }) => theme.colors.accent.signal} 58%,
-    ${({ theme }) => theme.colors.background.deep} 78%,
-    ${({ theme }) => theme.colors.text.onAccent} 100%
-  );
-  background-size: 200% 100%;
-  background-clip: text;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 1px 0 ${({ theme }) => theme.colors.effects.moonlightSoft});
-  animation: ${bookTextShift} ${({ theme }) => theme.motion.duration.twinkle}
-    ${({ theme }) => theme.motion.easing.ambient} infinite;
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-    background-position: 50% 50%;
-  }
+  color: inherit;
+  text-shadow: 0 1px 0 ${({ theme }) => theme.colors.effects.glassHighlight};
 
   @media (forced-colors: active) {
     color: ButtonText;
-    background: none;
-    -webkit-text-fill-color: currentColor;
-    filter: none;
+    text-shadow: none;
   }
 `

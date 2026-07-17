@@ -387,6 +387,16 @@ const signalHover = keyframes`
   }
 `
 
+const mobileHeroParallax = keyframes`
+  from {
+    transform: translate3d(0, -3%, 0) scale(1.03);
+  }
+
+  to {
+    transform: translate3d(0, 9%, 0) scale(1.12);
+  }
+`
+
 const toneColor = (theme, tone) => {
   if (theme.colors.accent[tone]) return theme.colors.accent[tone]
   return theme.colors.border[tone] || theme.colors.border.orbital
@@ -433,10 +443,17 @@ const HeroSectionRoot = styled(Section)`
   }
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    min-height: auto;
+    height: max(
+      42rem,
+      calc(
+        100svh - ${({ theme }) => theme.layout.compactHeaderOffset} - 0.75rem -
+          ${({ theme }) => theme.layout.safeArea.top}
+      )
+    );
+    min-height: 0;
     background:
-      radial-gradient(circle at 50% 72%, ${({ theme }) => theme.colors.effects.violetGlow} 0%, transparent 32%),
-      radial-gradient(circle at 50% 74%, ${({ theme }) => theme.colors.effects.acidGlowSoft} 0%, transparent 17%),
+      radial-gradient(circle at 58% 46%, ${({ theme }) => theme.colors.effects.violetGlow} 0%, transparent 36%),
+      radial-gradient(circle at 62% 52%, ${({ theme }) => theme.colors.effects.acidGlowSoft} 0%, transparent 18%),
       ${({ theme }) => theme.colors.gradients.hero};
   }
 
@@ -598,6 +615,19 @@ const HeroContainer = styled(Container)`
     pointer-events: none;
   }
 
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+    gap: 0;
+    height: 100%;
+    min-height: 0;
+    padding: clamp(${({ theme }) => theme.spacing.lg}, 3.5vh, ${({ theme }) =>
+        theme.spacing['3xl']})
+      max(
+        ${({ theme }) => theme.spacing['2xl']},
+        ${({ theme }) => theme.layout.safeArea.left}
+      );
+  }
+
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
     grid-template-columns: minmax(21rem, 0.86fr) minmax(28rem, 1.14fr);
     gap: clamp(2rem, 5vw, 6rem);
@@ -637,6 +667,34 @@ const HeroCopy = styled.div`
     border-radius: ${({ theme }) => theme.radii.orbital};
     background: ${({ theme }) => theme.colors.accent.metal};
     box-shadow: 0 0 0.8rem ${({ theme }) => theme.colors.effects.starlightSoft};
+  }
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    grid-area: 1 / 1;
+    align-self: center;
+    justify-self: center;
+    gap: clamp(${({ theme }) => theme.spacing.sm}, 1.35vh, ${({ theme }) =>
+        theme.spacing.lg});
+    max-width: 31rem;
+    padding: clamp(${({ theme }) => theme.spacing.lg}, 4vw, ${({ theme }) =>
+        theme.spacing['2xl']});
+    border-left-color: ${({ theme }) => theme.colors.border.filigree};
+    background:
+      linear-gradient(
+        90deg,
+        ${({ theme }) => theme.colors.background.surfaceRaised},
+        ${({ theme }) => theme.colors.background.glassViolet} 62%,
+        transparent
+      ),
+      radial-gradient(
+        circle at 74% 42%,
+        ${({ theme }) => theme.colors.effects.violetGlowSoft},
+        transparent 58%
+      );
+    box-shadow:
+      inset ${({ theme }) => theme.spacing['4xl']} 0 ${({ theme }) => theme.spacing['5xl']}
+        ${({ theme }) => theme.colors.effects.inkVeil},
+      ${({ theme }) => theme.shadows.surfaceRaised};
   }
 
   &::before {
@@ -700,6 +758,10 @@ const CoordinateGlyph = styled.span`
 const HeroEyebrow = styled(Eyebrow)`
   font-family: ${({ theme }) => theme.typography.fontFamily.mono};
   text-shadow: 0 0 0.9rem ${({ theme }) => theme.colors.effects.acidGlow};
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  }
 `
 
 const HeroTitle = styled(DisplayHeading)`
@@ -728,7 +790,8 @@ const HeroTitle = styled(DisplayHeading)`
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     max-width: 100%;
-    font-size: clamp(2.3rem, 10.8vw, 4.2rem);
+    font-size: clamp(2.15rem, 9.4vw, 3.6rem);
+    line-height: 0.88;
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
@@ -762,6 +825,11 @@ const HeroPositioning = styled.p`
   text-shadow:
     0 0 1rem ${({ theme }) => theme.colors.effects.acidGlowSoft},
     0 0 2.5rem ${({ theme }) => theme.colors.effects.violetGlowSoft};
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    max-width: 18ch;
+    font-size: clamp(1.3rem, 6.2vw, 1.8rem);
+  }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     max-width: 24ch;
@@ -814,6 +882,12 @@ const HeroDescription = styled(BodyCopy).attrs({
   font-size: clamp(1rem, 1.25vw, 1.12rem);
   text-shadow: 0 1px 1.2rem ${({ theme }) => theme.colors.background.canvas};
 
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    max-width: 31ch;
+    font-size: ${({ theme }) => theme.typography.fontSize.base};
+    line-height: 1.55;
+  }
+
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     max-width: 32rem;
     font-size: ${({ theme }) => theme.typography.fontSize.body};
@@ -828,7 +902,10 @@ const HeroActions = styled.div`
   margin-top: ${({ theme }) => theme.spacing.lg};
 
   @media (max-width: 520px) {
+    display: grid;
     width: 100%;
+    gap: ${({ theme }) => theme.spacing.sm};
+    margin-top: ${({ theme }) => theme.spacing.sm};
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
@@ -881,7 +958,10 @@ const HeroSecondaryAction = styled(GhostButton)`
   }
 
   @media (max-width: 520px) {
-    width: 100%;
+    justify-self: center;
+    width: auto;
+    min-height: 2.4rem;
+    padding-inline: ${({ theme }) => theme.spacing.xl};
   }
 `
 
@@ -978,8 +1058,32 @@ const HeroArtwork = styled.figure`
   perspective: 70rem;
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    min-height: clamp(29rem, 74svh, 42rem);
-    margin-top: -1rem;
+    grid-area: 1 / 1;
+    align-self: stretch;
+    justify-self: stretch;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    margin: 0;
+    opacity: 0.72;
+    mask-image: radial-gradient(
+      ellipse 82% 96% at 58% 48%,
+      black 0 62%,
+      transparent 100%
+    );
+    transform: translateZ(0);
+
+    @supports (animation-timeline: view()) {
+      animation: ${mobileHeroParallax} linear both;
+      animation-timeline: view();
+      animation-range: entry 0% exit 100%;
+      will-change: transform;
+    }
+  }
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) and (prefers-reduced-motion: reduce) {
+    animation: none;
+    transform: none;
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
@@ -1023,6 +1127,11 @@ const ArtworkGlow = styled.div`
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     inset: 4%;
   }
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    inset: 5% -16%;
+    opacity: 0.72;
+  }
 `
 
 const SacredInstrument = styled.svg`
@@ -1053,7 +1162,10 @@ const SacredInstrument = styled.svg`
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     inset: 50% auto auto 50%;
-    width: min(45rem, 103%);
+    width: auto;
+    max-width: none;
+    height: min(58rem, 112%);
+    opacity: 0.48;
     translate: -50% -50%;
   }
 
@@ -1137,7 +1249,10 @@ const OrbitingHalo = styled.div`
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     inset: 50% auto auto 50%;
-    width: min(39rem, 90%);
+    width: auto;
+    max-width: none;
+    height: min(54rem, 104%);
+    opacity: 0.56;
     translate: -50% -50%;
   }
 
@@ -1215,7 +1330,8 @@ const TarotLogoFrame = styled.div`
   }
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    inset: 0 -2%;
+    inset: -5% -52%;
+    opacity: 0.94;
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
@@ -1269,7 +1385,18 @@ const TarotLogoMark = styled.img`
   &[data-scroll-band='8'] { --logo-scroll-hue: 96deg; }
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    width: min(30rem, 90%);
+    width: auto;
+    max-width: none;
+    height: min(54rem, 96%);
+    opacity: 0.7;
+    mix-blend-mode: screen;
+    translate: 12% -4%;
+    filter:
+      hue-rotate(var(--logo-scroll-hue))
+      brightness(1.18)
+      saturate(1.08)
+      drop-shadow(0 0 1rem ${({ theme }) => theme.colors.effects.goldGlowSoft})
+      drop-shadow(0 0 2.4rem ${({ theme }) => theme.colors.effects.violetGlow});
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
@@ -1299,6 +1426,7 @@ const TarotLogoMark = styled.img`
 
   @media (prefers-reduced-motion: reduce) {
     transition: none;
+    translate: 0;
 
     ${HeroArtwork}:hover & {
       transform: none;

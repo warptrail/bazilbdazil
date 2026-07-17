@@ -262,7 +262,7 @@ export const tarotTheme = {
     proseWidth: '42rem',
     frameInset: 'clamp(0.5rem, 1.4vw, 1.25rem)',
     headerOffset: '7.25rem',
-    compactHeaderOffset: '9.5rem',
+    compactHeaderOffset: '6rem',
     expandedHeaderOffset: '12rem',
     heroMidMinHeight: '34rem',
     sectionBlock: 'clamp(4.75rem, 9vw, 8.5rem)',

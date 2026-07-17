@@ -1,4 +1,7 @@
+import { useState } from 'react'
 import styled, { keyframes } from 'styled-components'
+import { RitualChip } from '../RitualChip'
+import { RitualChipList } from '../RitualChipList'
 import {
   BodyCopy,
   Card,
@@ -11,6 +14,7 @@ import {
 } from '../../styles/primitives'
 
 export function ApproachSection({ content: approach }) {
+  const [activePrinciple, setActivePrinciple] = useState(null)
 
   return (
     <ApproachRoot id="approach" aria-labelledby="approach-heading">
@@ -64,11 +68,20 @@ export function ApproachSection({ content: approach }) {
 
           <AgencyNote>{approach.agencyStatement}</AgencyNote>
 
-          <PrincipleList aria-label="Practice principles">
+          <RitualChipList label="Practice principles">
             {approach.principles.map((principle) => (
-              <Principle key={principle}>{principle}</Principle>
+              <RitualChip
+                key={principle}
+                label={principle}
+                glyph="✦"
+                isActive={activePrinciple === principle}
+                actionLabel={`${principle}: toggle practice principle`}
+                onToggle={() =>
+                  setActivePrinciple(activePrinciple === principle ? null : principle)
+                }
+              />
             ))}
-          </PrincipleList>
+          </RitualChipList>
         </ApproachNarrative>
       </ApproachContainer>
     </ApproachRoot>
@@ -525,55 +538,5 @@ const AgencyNote = styled(BodyCopy).attrs({
     box-shadow: ${({ theme }) => theme.shadows.acidHover};
     content: '';
     transform: translateY(-50%);
-  }
-`
-
-const PrincipleList = styled.div`
-  display: flex;
-  flex-wrap: wrap;
-  gap: ${({ theme }) => theme.spacing.md} ${({ theme }) => theme.spacing.xl};
-`
-
-const Principle = styled.span`
-  display: inline-flex;
-  align-items: center;
-  min-height: ${({ theme }) => theme.layout.controlMinHeight};
-  padding-inline: ${({ theme }) => theme.spacing.md};
-  border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
-    ${({ theme }) => theme.colors.border.signal};
-  border-radius: ${({ theme }) => theme.radii.orbital};
-  color: ${({ theme }) => theme.colors.accent.signal};
-  font-family: ${({ theme }) => theme.typography.fontFamily.mono};
-  font-size: ${({ theme }) => theme.typography.fontSize.sm};
-  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
-  letter-spacing: ${({ theme }) => theme.typography.letterSpacing.label};
-  text-transform: uppercase;
-  background: ${({ theme }) => theme.colors.background.surfacePressed};
-  box-shadow: ${({ theme }) => theme.shadows.surfaceInset};
-  transition:
-    color ${({ theme }) => theme.transitions.fast},
-    border-color ${({ theme }) => theme.transitions.fast},
-    transform ${({ theme }) => theme.transitions.fast};
-
-  &::before {
-    margin-right: ${({ theme }) => theme.spacing.sm};
-    color: ${({ theme }) => theme.colors.accent.metal};
-    content: '✦';
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover {
-      border-color: ${({ theme }) => theme.colors.border.strong};
-      color: ${({ theme }) => theme.colors.text.bodyStrong};
-      transform: translateY(${({ theme }) => theme.layout.hoverLift});
-    }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    transition-duration: ${({ theme }) => theme.motion.duration.reduced};
-
-    &:hover {
-      transform: none;
-    }
   }
 `
