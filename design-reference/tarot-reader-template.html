@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="description" content="Tarot reader booking template">
+  <title>Tarot Reading Template</title>
+  <style>
+    :root { --ink:#f4efff; --muted:#c7bbd5; --night:#10091f; --plum:#3c194e; --violet:#8b4bba; --lilac:#dfbfff; --gold:#e9c873; --mist:#b6efe9; --cyan:#4ee8ff; --magenta:#ff4ebd; --toxic:#c8ff41; --midnight:#041329; --chrome:#d7e5f5; --sans:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif; --mono:"SFMono-Regular",Consolas,"Liberation Mono",monospace; --display:"Iowan Old Style","Baskerville","Times New Roman",serif; --px:50%; --py:40%; --scroll:0px; }
+    * { box-sizing:border-box; } html { scroll-behavior:smooth; } body { margin:0; color:var(--ink); background:radial-gradient(circle at var(--x,72%) var(--y,10%),#bb79d32b,transparent 20rem),radial-gradient(circle at 8% 30%,#6ae3e11c,transparent 23rem),linear-gradient(135deg,#0b0617,#211037 54%,#10081f); font:16px/1.55 Georgia,serif; overflow-x:hidden; }
+    body:before { content:""; position:fixed; z-index:30; inset:0; pointer-events:none; opacity:.25; background-image:url("data:image/svg+xml,%3Csvg viewBox='0 0 180 180' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E"); mix-blend-mode:soft-light; }
+    a { color:inherit; } button { font:inherit; cursor:pointer; } .wrap { width:min(1130px,calc(100% - 28px)); margin:auto; }
+    .sigil { display:inline-grid; width:27px; aspect-ratio:1; place-items:center; border:1px solid var(--gold); border-radius:50%; color:var(--gold); font:16px serif; }
+    .announcement { padding:8px 0; color:var(--gold); font:700 10px/1.35 monospace; letter-spacing:1.4px; text-align:center; text-transform:uppercase; }
+    .site-head { position:sticky; top:0; z-index:10; border-block:1px solid #b790ce88; background:#10091fea; backdrop-filter:blur(14px); } .site-head .wrap { min-height:70px; display:flex; align-items:center; justify-content:space-between; gap:16px; }
+    .brand { display:flex; align-items:center; gap:8px; color:#fff; font:900 18px/1 Georgia,serif; letter-spacing:.7px; text-decoration:none; text-transform:uppercase; } .brand small { display:block; margin-top:3px; color:var(--gold); font:9px monospace; letter-spacing:1.5px; }
+    .nav { display:flex; flex-wrap:wrap; justify-content:flex-end; gap:3px 17px; } .nav a { color:var(--muted); font:700 11px monospace; letter-spacing:1px; text-decoration:none; } .nav a:hover { color:var(--gold); }
+    .hero { min-height:650px; position:relative; display:grid; align-items:end; isolation:isolate; overflow:hidden; border-bottom:1px solid #af91ca; } .hero:before { content:""; position:absolute; inset:0; z-index:-2; background:linear-gradient(0deg,#10091fee,#10091f08 73%),var(--hero-image,radial-gradient(ellipse at 52% 35%,#a057a488,transparent 36%),linear-gradient(135deg,#170527,#503067)); background-position:center; background-size:cover; } .hero:after { content:"☾  ✧  ☾  ✧  ☾  ✧  ☾  ✧  ☾"; position:absolute; inset:auto -5% 10px; z-index:-1; color:#edd28726; font:38px/1 serif; letter-spacing:30px; white-space:nowrap; transform:rotate(-6deg); }
+    .hero-copy { max-width:760px; padding:84px 0 58px; } .kicker,.label { color:var(--gold); font:700 11px monospace; letter-spacing:2px; text-transform:uppercase; } h1 { margin:11px 0 15px; max-width:720px; font:normal clamp(63px,12vw,143px)/.8 Georgia,serif; letter-spacing:-4px; text-shadow:2px 3px #35133d,0 0 27px #d29bee88; } .tagline { max-width:580px; margin:0; color:#fff; font-size:clamp(18px,3vw,28px); font-style:italic; line-height:1.25; text-shadow:1px 2px #000; }
+    .actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:28px; } .button { display:inline-block; padding:11px 15px; border:1px solid var(--gold); color:#25112e; background:linear-gradient(135deg,#f8e7a9,var(--gold)); box-shadow:0 0 18px #e8c47f55; font:700 13px Georgia,serif; text-decoration:none; } .button:hover { transform:translateY(-2px); box-shadow:0 5px 22px #e8c47f77; } .button.ghost { color:var(--ink); background:#1c102cbb; border-color:var(--lilac); }
+    section { scroll-margin-top:82px; } .paper { border:1px solid #ae89c0; background:linear-gradient(135deg,#261438e8,#160d28ed); box-shadow:0 10px 38px #0005,inset 0 0 30px #6f47821c; } .ornament { color:var(--gold); font-size:28px; letter-spacing:7px; text-align:center; }
+    .intro { display:grid; grid-template-columns:1.05fr .95fr; gap:17px; padding:74px 0; } .panel { padding:28px; } h2 { margin:8px 0 15px; font:normal clamp(35px,5vw,61px)/.95 Georgia,serif; letter-spacing:-2px; } .copy { color:var(--muted); } .copy p:first-child { margin-top:0; } .quote { margin:21px 0 0; padding:13px 16px; border-left:3px solid var(--gold); color:#f8f1ff; background:#8b4bba1b; font-size:19px; font-style:italic; line-height:1.35; }
+    .portrait { min-height:450px; position:relative; overflow:hidden; background:radial-gradient(circle at 50% 40%,#efd47e55 0 1%,transparent 1.5% 4%,#9d4f9d6b 4.5% 19%,transparent 20%),linear-gradient(145deg,#6e3a74,#1d163b 70%); } .portrait:before { content:""; position:absolute; inset:0; background:var(--portrait-image,linear-gradient(145deg,#6e3a74,#1d163b 70%)); background-position:center; background-size:cover; opacity:.88; mix-blend-mode:screen; } .portrait div { position:absolute; right:16px; bottom:13px; max-width:210px; padding:9px 11px; border:1px solid #e5cd8f; color:#fff4d3; background:#12071cdd; font:10px monospace; letter-spacing:1px; text-align:right; }
+    .offerings { padding:74px 0; border-block:1px solid #a57bb9; background:#0c0718a8; } .offerings-head { max-width:680px; margin:auto; text-align:center; } .reading-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:13px; margin-top:28px; } .reading { display:flex; flex-direction:column; padding:21px; border:1px solid #a982bf; background:linear-gradient(145deg,#311a4a,#170d29); box-shadow:7px 8px #0005; } .reading:nth-child(2) { border-color:var(--gold); transform:translateY(-9px); background:linear-gradient(145deg,#482355,#1d0f2a); } .reading h3 { margin:9px 0 7px; font-size:29px; font-weight:normal; line-height:1.05; } .reading p { color:var(--muted); margin:0; } .reading .time { margin-top:19px; color:var(--mist); font:700 11px monospace; letter-spacing:1px; } .reading .price { margin:2px 0 17px; color:var(--gold); font-size:31px; } .reading .button { margin-top:auto; text-align:center; }
+    .spread { display:grid; grid-template-columns:.9fr 1.1fr; gap:18px; align-items:center; padding:74px 0; } .card-stage { min-height:380px; display:grid; place-items:center; position:relative; overflow:hidden; } .card-stage:before { content:"✦"; position:absolute; color:#f5d38933; font:310px/1 Georgia,serif; } .tarot-card { width:207px; aspect-ratio:2/3.35; z-index:1; display:grid; place-items:center; padding:12px; border:2px solid var(--gold); border-radius:7px; background:linear-gradient(160deg,#f4df9c,#b9845a 44%,#412554 45%,#20112f); box-shadow:13px 16px #0006,0 0 28px #edcf7655; color:#2a1435; text-align:center; transform:rotate(-5deg); transition:transform .45s; } .tarot-card:hover { transform:rotate(3deg) translateY(-7px); } .tarot-card i { display:block; margin-bottom:8px; color:#fce5aa; font:60px/1 Georgia,serif; text-shadow:2px 2px #4d2759; } .tarot-card b { display:block; padding:8px; color:#fff5d7; font:normal 22px/1.05 Georgia,serif; letter-spacing:1px; text-transform:uppercase; } .tarot-card small { color:#fce8ad; font:10px monospace; }
+    .details { display:grid; gap:12px; margin-top:18px; } details { border-bottom:1px solid #6e4b86; padding:10px 0; } summary { color:#fff2c8; cursor:pointer; font-size:17px; } details p { margin:8px 0 1px; color:var(--muted); }
+    .testimonials { padding:74px 0; background:linear-gradient(120deg,#1f0e30,#093336); } .testimonial-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:13px; margin-top:25px; } .testimonial { padding:20px; border:1px solid #84ccc6; background:#10172add; } .testimonial q { display:block; font-size:19px; font-style:italic; line-height:1.35; } .testimonial cite { display:block; margin-top:17px; color:var(--mist); font:700 10px monospace; letter-spacing:1px; font-style:normal; text-transform:uppercase; }
+    .booking { padding:76px 0 84px; text-align:center; } .booking .paper { max-width:760px; margin:auto; padding:39px 28px; } .booking .copy { max-width:550px; margin:0 auto; } .mini { margin-top:19px; color:#cdbed9; font:12px/1.45 Arial,sans-serif; }
+    footer { padding:22px 0 31px; border-top:1px solid #84669a; color:#bcaac8; font:10px monospace; letter-spacing:.6px; text-align:center; } .template-note { color:var(--gold); }
+    @media (max-width:760px) { .nav { display:none; } .site-head .wrap { min-height:58px; } .hero { min-height:590px; } .intro,.spread { grid-template-columns:1fr; } .portrait { min-height:330px; } .reading-grid,.testimonial-grid { grid-template-columns:1fr; } .reading:nth-child(2) { transform:none; } h1 { letter-spacing:-2px; } }
+    @media (prefers-reduced-motion:reduce) { *,*:before,*:after { scroll-behavior:auto!important; transition:none!important; animation:none!important; } }
+
+    /* ── ORACLE TERMINAL / artifact layer 23.42.108 ─────────────
+       An interface remembered by a machine that was not built yet. */
+    body { font-family:var(--display); background:radial-gradient(ellipse at var(--px) var(--py),#235e8730 0,transparent 28rem),radial-gradient(ellipse at 12% 84%,#c655a124 0,transparent 31rem),linear-gradient(145deg,#04040d 0%,#08152f 34%,#1b0830 72%,#02070e 100%); }
+    body::after { content:""; position:fixed; z-index:29; inset:0; pointer-events:none; opacity:.16; background:repeating-linear-gradient(90deg,#00eaff05 0 1px,transparent 1px 37px),repeating-linear-gradient(0deg,transparent 0 4px,#6ef3ff08 5px 6px); mix-blend-mode:screen; }
+    .announcement { position:relative; border-block:1px solid #8e75bc54; color:var(--toxic); background:linear-gradient(90deg,transparent,#142e2c7a,transparent); font-family:var(--mono); text-shadow:0 0 9px #c8ff4188; }
+    .announcement::before,.announcement::after { content:"◌ 23 // 42 // 108 ◌"; position:absolute; top:9px; color:#8cb6cf66; font:8px var(--mono); letter-spacing:1px; } .announcement::before { left:15px; } .announcement::after { right:15px; }
+    .sigil { position:relative; overflow:hidden; border-color:#f6d77b; box-shadow:0 0 0 1px #22172f,0 0 8px #e9c87374,inset 0 0 9px #fff2; background:linear-gradient(135deg,#fff0,#e9c87329); }
+    .sigil::after { content:""; position:absolute; inset:-50%; background:linear-gradient(115deg,transparent 42%,#fff9 50%,transparent 58%); transform:translateX(-70%) rotate(15deg); animation:sigil-glint 8.137s ease-in-out infinite; }
+    .site-head { overflow:hidden; border-block-color:#7eeaff91; background:linear-gradient(90deg,#050916ee,#13132dea,#180a24ef); box-shadow:0 1px 0 #fff3,inset 0 -1px #ff4ebd42,0 4px 22px #0009; }
+    .site-head::before { content:""; position:absolute; inset:0; pointer-events:none; opacity:.7; background:linear-gradient(105deg,transparent 0 40%,#ffffff18 48%,transparent 56%); transform:translateX(-100%); animation:header-sweep 18s ease-in-out infinite; }
+    .brand { font-family:var(--display); text-shadow:1px 1px #02050b,0 0 14px #4ee8ff77; } .brand small { color:var(--toxic); font-family:var(--mono); }
+    .nav a { position:relative; padding:8px 0; color:#d1c6df; font-family:var(--mono); transition:color .2s,filter .2s; }
+    .nav a::before { content:""; position:absolute; bottom:3px; left:0; width:100%; height:1px; background:linear-gradient(90deg,transparent,var(--cyan),var(--toxic),transparent); transform:scaleX(0); transform-origin:left; box-shadow:0 0 8px var(--cyan); transition:transform .35s cubic-bezier(.2,.8,.2,1); } .nav a:hover::before,.nav a:focus-visible::before { transform:scaleX(1); }
+    .nav a::after { content:attr(data-echo); position:absolute; top:8px; left:0; color:var(--magenta); opacity:0; pointer-events:none; white-space:nowrap; text-shadow:0 0 10px var(--magenta); } .nav a.flash-echo::after { animation:afterimage .75s ease-out forwards; }
+    .hero { min-height:680px; border-bottom-color:#77e9f7aa; box-shadow:inset 0 -1px #fff3,0 30px 100px #0006; }
+    .hero::before { filter:saturate(1.15) contrast(1.08); } .hero::after { color:#e9c87320; text-shadow:0 0 12px #e9c87355; animation:constellation-drift 28s ease-in-out infinite alternate; }
+    .hero-copy { position:relative; } .hero-copy::before { content:"ARCHIVE NODE 1701 / LAT 37°42′ / SIGNAL: LIMINAL"; display:block; margin-bottom:15px; color:#8eeeffaa; font:9px var(--mono); letter-spacing:1.5px; text-shadow:0 0 10px #4ee8ff99; }
+    .kicker,.label { color:var(--toxic); font-family:var(--mono); text-shadow:0 0 8px #c8ff416b; }
+    h1,h2 { font-family:var(--display); } h1 { position:relative; z-index:0; color:#f7efff; text-shadow:1px 1px #061425,3px 5px #3b0a57,0 0 4px #fff,0 0 20px #ff4ebd75,0 0 48px #4ee8ff4d; }
+    .foil-title { background:linear-gradient(108deg,#fff 0%,#e3b3ff 18%,#7feeff 34%,#fff4cb 48%,#ff5ac5 63%,#caeaff 78%,#fff 100%); background-size:250% 100%; -webkit-background-clip:text; background-clip:text; color:transparent; animation:foil-shift 12.7s linear infinite; }
+    .tagline { color:#f2efff; font-family:var(--display); text-shadow:0 2px 2px #000,0 0 16px #cdb4ff50; }
+    .button { position:relative; overflow:hidden; border-color:#f5d781; border-radius:2px; background:linear-gradient(135deg,#fff5bf 0%,#d09d4d 26%,#ffeba4 47%,#926431 70%,#f6d77d 100%); background-size:200% 200%; box-shadow:0 1px #fff9 inset,0 -2px #4a2b15 inset,0 0 0 1px #140d19,0 5px 0 #190d22,0 9px 22px #0009,0 0 16px #e9c87355; color:#160d20; font-family:var(--mono); font-size:11px; letter-spacing:.6px; transition:transform .2s cubic-bezier(.2,.9,.3,1),box-shadow .2s,filter .25s; }
+    .button::before { content:""; position:absolute; inset:-2px; opacity:0; background:radial-gradient(circle at var(--px) var(--py),#fff 0 1px,#fff7 2px,transparent 7px),linear-gradient(110deg,transparent 37%,#fff8 48%,transparent 58%); transform:translateX(-85%); transition:opacity .2s; } .button:hover::before { opacity:1; animation:button-flare .6s ease-out; } .button:hover { background-position:100% 0; filter:saturate(1.25) brightness(1.08); } .button:active { transform:translateY(4px) scale(.985); box-shadow:0 1px #fff8 inset,0 -1px #4a2b15 inset,0 1px 0 #190d22,0 3px 12px #0008; }
+    .button.ghost { border-color:#70e7ec; color:#e8fbff; background:linear-gradient(145deg,#102034da,#240e3add); box-shadow:0 1px #efffff55 inset,0 -2px #050814 inset,0 0 0 1px #0a1725,0 5px 0 #050814,0 8px 20px #0008,0 0 13px #4ee8ff2d; }
+    .paper,.reading,.testimonial,.tarot-card { position:relative; isolation:isolate; border-color:#9d8bd6; box-shadow:0 0 0 1px #02050c,0 1px #ffffff36 inset,0 0 0 2px #43335e inset,0 16px 38px #0009,0 0 22px #9459bd26; }
+    .paper::after,.reading::after,.testimonial::after { content:""; position:absolute; z-index:-1; inset:2px; pointer-events:none; border:1px solid #d8c5ff1c; background:radial-gradient(circle at var(--px) var(--py),#aefeff16,transparent 38%),linear-gradient(115deg,transparent 35%,#ffffff09 45%,transparent 55%); box-shadow:inset 0 0 20px #0008; }
+    .paper { background:linear-gradient(135deg,#28173ae9,#091124ed 55%,#1a0c2beb); } .panel::before { content:"MERCURY-SAFE ENCLOSURE · REV 4.04"; display:block; margin-bottom:19px; color:#89b7c7a4; font:9px var(--mono); letter-spacing:1px; }
+    .ornament { position:relative; color:var(--gold); text-shadow:0 0 12px #e9c87377; } .ornament::after { content:"S E E  //  ··· · ·"; display:block; margin-top:7px; color:#83b6bb; font:8px var(--mono); letter-spacing:3px; }
+    .portrait { border-color:#79dce4; background:radial-gradient(circle at 50% 40%,#4ee8ff36 0 1%,transparent 1.5% 4%,#c855bd5e 4.5% 19%,transparent 20%),linear-gradient(145deg,#0e3854,#1d163b 70%); } .portrait::after { content:"SECTOR 37.7749N / 122.4194W · OBSERVATORY FEED"; position:absolute; right:14px; top:13px; padding:4px 6px; border:1px solid #70e7ec88; color:#9efaff; background:#061526a8; font:8px var(--mono); letter-spacing:.7px; }
+    .offerings { position:relative; overflow:hidden; border-block-color:#71e0ec80; background:linear-gradient(120deg,#050b17e8,#13091ee8 40%,#071c27e8); } .offerings::before { content:""; position:absolute; inset:0; pointer-events:none; opacity:.3; background:linear-gradient(90deg,transparent 0 48%,#4ee8ff1c 49%,transparent 50%),repeating-linear-gradient(0deg,transparent 0 34px,#b5e9ff0b 35px 36px); }
+    .reading-grid { position:relative; } .reading { --base-y:0px; min-height:310px; overflow:hidden; border-color:#7ae2ed; background:linear-gradient(145deg,#0c2234,#211030 48%,#060c18); transform:perspective(800px) translateY(var(--base-y)) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)) rotate(var(--base-rotate,0deg)); transform-style:preserve-3d; transition:transform .24s ease,box-shadow .3s,border-color .3s; }
+    .reading:nth-child(2) { --base-y:-9px; border-color:var(--gold); background:linear-gradient(145deg,#34203f,#0e2933 50%,#160c29); } .reading:hover { border-color:var(--toxic); box-shadow:0 0 0 1px #02050c,0 1px #fff6 inset,0 14px 34px #000b,0 0 29px #4ee8ff55; }
+    .reading > * { position:relative; } .reading h3 { font-family:var(--display); text-shadow:1px 2px #070610,0 0 12px #d6b6ff45; } .reading .price { color:#ffe193; text-shadow:0 0 9px #e9c87385; } .reading .time { color:#8ff3f1; }
+    .reading .label::after { content:" / P-23"; color:#a07bae; } .reading::before { content:"✦"; position:absolute; top:14px; right:16px; color:#f8dc8b; font-size:13px; text-shadow:0 0 12px #e9c873; animation:star-breathe 4.2s ease-in-out infinite; }
+    .spread { position:relative; } .card-stage { border-color:#e2c573; background:radial-gradient(circle at var(--px) var(--py),#e9c87322,transparent 29%),linear-gradient(145deg,#170927,#071827); } .card-stage::after { content:"π 3.14159 · 137 · 1701"; position:absolute; bottom:15px; left:19px; color:#b7e7ed87; font:9px var(--mono); letter-spacing:1px; }
+    .tarot-card { --base-rotate:-5deg; overflow:hidden; background:linear-gradient(160deg,#f7e0a0,#a36f42 33%,#24284e 34%,#150a22); transform:perspective(800px) translateY(var(--base-y)) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)) rotate(var(--base-rotate)); transition:transform .28s ease,filter .25s; } .tarot-card::before { content:""; position:absolute; inset:5px; border:1px solid #fff0bb9b; box-shadow:inset 0 0 0 2px #351c4999; } .tarot-card::after { content:"S/N M42-023-1701"; position:absolute; bottom:8px; color:#fee9a4; font:7px var(--mono); letter-spacing:1px; }
+    .tarot-card:hover { --base-rotate:3deg; filter:brightness(1.13) saturate(1.16); } .tarot-card b,.tarot-card small,.tarot-card i { position:relative; z-index:1; }
+    details { position:relative; border-bottom-color:#6ee5e25c; transition:background .2s,padding .2s; } details[open] { padding:12px; background:#4ee8ff0b; box-shadow:inset 2px 0 #4ee8ff; } summary { font-family:var(--sans); font-size:15px; } summary::marker { color:var(--toxic); }
+    .testimonials { position:relative; overflow:hidden; background:radial-gradient(circle at 72% 10%,#4ee8ff26,transparent 25rem),linear-gradient(120deg,#071b29,#170928 54%,#071926); } .testimonials::before { content:"ARCHIVAL VOICE BUFFER / 404 NOT A FAILURE"; position:absolute; top:18px; right:4%; color:#8edbe33d; font:9px var(--mono); letter-spacing:1px; }
+    .testimonial { border-color:#5fdde8; background:linear-gradient(145deg,#0b1d2bdf,#170d2be9); transform:perspective(800px) translateY(var(--base-y,0)) rotateX(var(--tilt-x,0deg)) rotateY(var(--tilt-y,0deg)); transition:transform .24s ease,box-shadow .3s; } .testimonial:hover { box-shadow:0 0 0 1px #02050c,0 1px #fff4 inset,0 13px 28px #0009,0 0 24px #4ee8ff55; } .testimonial q { font-family:var(--display); } .testimonial cite { color:var(--toxic); font-family:var(--mono); }
+    .booking .paper { overflow:hidden; border-color:#e9c873; background:radial-gradient(circle at var(--px) var(--py),#f5d27d1f,transparent 38%),linear-gradient(145deg,#251533,#071725 56%,#1f0c2c); } .booking .paper::before { content:"CALIBRATION COMPLETE // 23:42 LOCAL"; position:absolute; top:15px; left:17px; color:#9ce5ed88; font:8px var(--mono); letter-spacing:1px; }
+    footer { position:relative; overflow:hidden; border-top-color:#66dce5a8; color:#a9c5cf; background:#030713; font-family:var(--mono); } footer::before { content:"PROPERTY OF THE LIMINAL CARTOGRAPHY OFFICE · FILE 1701-A · CALIBRATED 108Hz"; display:block; margin-bottom:8px; color:#c1ff42a3; font-size:8px; letter-spacing:1px; } .template-note { color:#e5ce86; }
+    .cursor-orb { display:none; position:fixed; z-index:40; width:24px; height:24px; border:1px solid #baf8ff; border-radius:50%; pointer-events:none; mix-blend-mode:screen; box-shadow:0 0 10px #4ee8ff9e,inset 0 0 6px #ff4ebd89; transform:translate(-50%,-50%); transition:width .16s,height .16s,border-color .16s,opacity .2s; } .cursor-orb::before,.cursor-orb::after { content:""; position:absolute; background:#dffeff; box-shadow:0 0 7px var(--cyan); } .cursor-orb::before { width:1px; height:34px; left:11px; top:-6px; } .cursor-orb::after { height:1px; width:34px; top:11px; left:-6px; } .cursor-orb.is-link { width:36px; height:36px; border-color:var(--toxic); }
+    @media (pointer:fine) { .cursor-orb { display:block; } }
+    .star-field { position:fixed; z-index:0; inset:0; overflow:hidden; pointer-events:none; transform:translateY(calc(var(--scroll) * -.012)); } .star { position:absolute; width:2px; aspect-ratio:1; border-radius:50%; background:#d8fbff; box-shadow:0 0 7px #4ee8ff; animation:star-breathe var(--duration,5s) ease-in-out infinite; animation-delay:var(--delay,0s); } .star:nth-child(3n) { background:var(--gold); box-shadow:0 0 9px var(--gold); } .star:nth-child(4n) { background:var(--magenta); box-shadow:0 0 7px var(--magenta); }
+    .announcement,main,footer { position:relative; z-index:1; } .constellation { position:absolute; z-index:-1; top:58px; right:-32px; width:min(54vw,720px); height:auto; opacity:.38; pointer-events:none; filter:drop-shadow(0 0 7px #4ee8ff99); } .constellation path { fill:none; stroke:#7ceef3; stroke-width:.7; stroke-dasharray:3 7; } .constellation circle { fill:#eafcff; } .constellation text { fill:#d4ff67; font:5px var(--mono); letter-spacing:1px; }
+    .protocol-state { position:fixed; right:13px; bottom:11px; z-index:20; display:flex; align-items:center; gap:7px; padding:6px 8px; border:1px solid #60dce47c; color:#97dce2; background:#061220cc; box-shadow:0 0 13px #4ee8ff29; font:8px var(--mono); letter-spacing:.7px; transition:color .3s,border-color .3s,box-shadow .3s; } .protocol-state b { width:6px; aspect-ratio:1; border-radius:50%; background:#718894; box-shadow:0 0 5px #718894; } .signal-acquired .protocol-state { color:var(--toxic); border-color:var(--toxic); box-shadow:0 0 18px #c8ff4166; } .signal-acquired .protocol-state b { background:var(--toxic); box-shadow:0 0 9px var(--toxic); animation:signal-pulse 1.4s infinite; }
+    .migratory-relic { position:absolute!important; z-index:4; right:10px; bottom:10px; display:grid; width:17px; aspect-ratio:1; place-items:center; border:1px solid #80eef0; border-radius:50%; color:var(--toxic); background:#07172acc; box-shadow:0 0 10px #4ee8ff89; font:10px var(--mono); cursor:help; } .migratory-relic::after { content:attr(data-secret); position:absolute; right:0; bottom:22px; width:max-content; max-width:180px; padding:4px 6px; color:#d9ffdc; background:#06101ae8; font:8px var(--mono); letter-spacing:.4px; opacity:0; transform:translateY(3px); transition:.2s; } .migratory-relic:hover::after { opacity:1; transform:none; }
+    .ufo { position:fixed; z-index:5; top:27%; left:-90px; width:58px; height:16px; border:1px solid #91fdff; border-radius:50%; opacity:0; pointer-events:none; background:radial-gradient(ellipse at center,#eaffff 0 18%,#4ee8ff 20% 36%,#142e78 38% 65%,#080d1d 66%); box-shadow:0 0 12px #4ee8ff,0 10px 28px #c8ff4144; } .passing-signal .ufo { animation:ufo-cross 2.9s linear forwards; }
+    .oracle-mode { --gold:#53f1f3; --violet:#1a7c8f; --lilac:#9dfaff; --mist:#e8b2ff; } .oracle-mode .hero::before { filter:hue-rotate(118deg) saturate(1.4) contrast(1.13); } .oracle-mode h1 { text-shadow:2px 0 #ff4ebd,-2px 0 #4ee8ff,0 0 27px #c8ff41; } .oracle-mode .announcement { color:var(--magenta); }
+    .time-window .hero::before { filter:hue-rotate(24deg) brightness(1.13); } .time-window .hero-copy::before { content:"23:42 LOCAL / THE WINDOW IS OPEN"; color:#fff3af; }
+    [data-tilt] { will-change:transform; } [data-sheen] { --px:50%; --py:40%; }
+    @keyframes sigil-glint { 0%,72%,100% { transform:translateX(-70%) rotate(15deg); } 84% { transform:translateX(68%) rotate(15deg); } }
+    @keyframes header-sweep { 0%,72%,100% { transform:translateX(-110%); } 84% { transform:translateX(120%); } }
+    @keyframes foil-shift { to { background-position:250% 0; } } @keyframes button-flare { to { transform:translateX(95%); } }
+    @keyframes star-breathe { 0%,100% { opacity:.28; transform:scale(.7); } 50% { opacity:1; transform:scale(1.55); } } @keyframes constellation-drift { to { transform:translate3d(2vw,-1vh,0) rotate(1deg); } }
+    @keyframes afterimage { 0% { opacity:.8; transform:translateY(0); } 100% { opacity:0; transform:translate(8px,-7px); } } @keyframes signal-pulse { 50% { transform:scale(1.7); } }
+    @keyframes ufo-cross { 0% { opacity:0; transform:translate(-20vw,4vh) rotate(-8deg); } 10%,88% { opacity:1; } 100% { opacity:0; transform:translate(125vw,-19vh) rotate(-8deg); } }
+    @media (max-width:760px) { .announcement::before,.announcement::after { display:none; } .hero { min-height:600px; } .hero-copy::before { font-size:7px; } .reading:nth-child(2) { --base-y:0px; } .protocol-state { bottom:8px; right:8px; } }
+
+    /* PHYSICAL OBJECT PASS: hand-finished cards, soft corners, light caught in enamel. */
+    .paper,.reading,.testimonial,.portrait,.card-stage { border-radius:18px; }
+    .tarot-card { border-radius:13px; } .button { border-radius:9px; } .sigil { border-radius:50%; }
+    .paper,.reading,.testimonial,.portrait,.card-stage,.tarot-card {
+      border-color:color-mix(in srgb,var(--cyan) 32%,#d9c4ee);
+      box-shadow:0 1px 0 #ffffff55 inset,0 -2px 0 #02050c9c inset,0 0 0 1px #100c1b,
+        0 2px 0 #060911,0 5px 0 #0a0c18,0 9px 0 #0d0d1a,0 17px 33px #000a,0 0 24px #4ee8ff25;
+    }
+    .paper::after,.reading::after,.testimonial::after { border-radius:inherit; background:radial-gradient(circle at var(--px) var(--py),#f4ffff1a,transparent 29%),repeating-linear-gradient(117deg,transparent 0 7px,#d4faff08 8px 9px,transparent 10px 18px),linear-gradient(115deg,transparent 38%,#ffffff0d 47%,transparent 56%); }
+    .paper { background:linear-gradient(135deg,#30213fe8,#0b1523ef 52%,#1a1028ec); }
+    .reading { border-radius:17px; background:linear-gradient(145deg,#132c3d,#20122f 48%,#070f1a); }
+    .reading:nth-child(2) { background:linear-gradient(145deg,#3a2342,#10313b 49%,#1b1028); }
+    .testimonial { border-radius:16px; background:linear-gradient(145deg,#102634e8,#190f2bed); }
+    .portrait { border-radius:22px; } .portrait::before { border-radius:inherit; } .portrait::after { inset:13px 14px auto auto; border-radius:4px; background:#061526d8; } .portrait div { border-radius:9px; box-shadow:0 2px 0 #000b,0 8px 17px #0008; }
+    .card-stage { overflow:hidden; border-radius:22px; } .card-stage::before { filter:blur(.15px); }
+    .tarot-card { box-shadow:0 1px 0 #fff9 inset,0 -2px 0 #24122f inset,0 0 0 1px #513a62,0 3px 0 #3a1d42,0 7px 0 #1d1230,0 12px 0 #100b1b,0 21px 34px #000b,0 0 28px #edcf7663; }
+    .tarot-card::before { border-radius:8px; } .tarot-card::after { border-radius:0 0 7px 7px; }
+    .reading:hover,.testimonial:hover { border-color:#b9ffff; box-shadow:0 1px 0 #fff8 inset,0 -2px 0 #02050c9c inset,0 0 0 1px #100c1b,0 3px 0 #060911,0 8px 0 #0a0c18,0 13px 0 #0d0d1a,0 24px 39px #000b,0 0 31px #4ee8ff55; }
+    .booking .paper { border-radius:24px; box-shadow:0 1px 0 #fff8 inset,0 -2px 0 #02050c9c inset,0 0 0 1px #100c1b,0 3px 0 #080b13,0 8px 0 #0c0e18,0 15px 0 #12111d,0 26px 46px #000b,0 0 34px #e9c87343; }
+    .protocol-state { border-radius:999px; box-shadow:0 1px #ffffff3b inset,0 -1px #0009 inset,0 0 0 1px #07101a,0 5px 16px #0008,0 0 13px #4ee8ff29; }
+    .site-head { border-radius:0 0 15px 15px; }
+    .cursor-orb { width:19px; height:19px; border-color:#bcfaff; background:radial-gradient(circle at 32% 28%,#ffffffa6,transparent 18%),radial-gradient(circle,#4ee8ff25,transparent 62%); box-shadow:0 0 0 1px #070d17,0 0 11px #4ee8ffb5,inset 0 0 7px #ff4ebd7d; transition:width .16s,height .16s,border-color .16s,border-radius .16s,opacity .2s,background .2s; }
+    .cursor-orb.is-link { width:35px; height:35px; border-color:var(--toxic); background:radial-gradient(circle,#c8ff4136,transparent 65%); }
+    .cursor-orb.is-text { width:12px; height:29px; border-radius:4px; border-color:#dcbcff; opacity:.78; }
+    @media (pointer:fine) { html,body,body * { cursor:none!important; } }
+  </style>
+</head>
+<body>
+  <!-- Tarot Reader Template: edit the READER object near the bottom.
+       The Cartography Office insists this surface was found already humming. -->
+  <div class="star-field" aria-hidden="true"><i class="star" style="left:6%;top:18%;--duration:7s;--delay:-2s"></i><i class="star" style="left:18%;top:42%;--duration:5s;--delay:-4s"></i><i class="star" style="left:79%;top:14%;--duration:9s;--delay:-1s"></i><i class="star" style="left:91%;top:57%;--duration:6s;--delay:-3s"></i><i class="star" style="left:45%;top:87%;--duration:11s;--delay:-5s"></i><i class="star" style="left:30%;top:72%;--duration:8s;--delay:-7s"></i></div>
+  <div class="cursor-orb" aria-hidden="true"></div><div class="ufo" aria-hidden="true"></div><div class="protocol-state" id="protocol-state" aria-live="polite"><b></b><span>CHANNEL 404 · STANDBY</span></div>
+  <div class="announcement"><span class="sigil">☾</span> <span data-text="announcement">Bookings are open for this lunar cycle</span> <span class="sigil">☽</span></div>
+  <header class="site-head"><div class="wrap"><a class="brand" href="#top"><span class="sigil">✦</span><span><span data-text="name">READER NAME</span><small data-text="practice">TAROT &amp; INTUITIVE GUIDANCE</small></span></a><nav class="nav"><a data-echo="ABOUT" href="#about">ABOUT</a><a data-echo="READINGS" href="#readings">READINGS</a><a data-echo="APPROACH" href="#approach">APPROACH</a><a data-echo="KIND WORDS" href="#kind-words">KIND WORDS</a><a data-echo="BOOK" href="#book">BOOK</a></nav></div></header>
+  <main id="top">
+    <section class="hero"><svg class="constellation" aria-hidden="true" viewBox="0 0 420 280"><path d="M17 207 91 122 176 168 250 73 331 124 406 32M91 122 133 41M176 168 246 239M331 124 366 218"/><circle cx="17" cy="207" r="3"/><circle cx="91" cy="122" r="3"/><circle cx="176" cy="168" r="3"/><circle cx="250" cy="73" r="3"/><circle cx="331" cy="124" r="3"/><circle cx="406" cy="32" r="3"/><circle cx="133" cy="41" r="2"/><circle cx="246" cy="239" r="2"/><circle cx="366" cy="218" r="2"/><text x="20" y="227">23</text><text x="255" y="66">42</text><text x="335" y="146">108</text></svg><div class="wrap hero-copy"><div class="kicker" data-text="eyebrow">TAROT · INTUITION · GENTLE CLARITY</div><h1 class="foil-title" data-text="name">READER NAME</h1><p class="tagline" data-text="tagline">A grounded place to listen closely to the questions moving underneath your life.</p><div class="actions"><a class="button" data-link="bookingLink" href="#book">BOOK A READING</a><a class="button ghost" href="#readings">EXPLORE THE SPREADS</a></div></div></section>
+    <section id="about"><div class="wrap intro"><article class="paper panel"><div class="label">A NOTE FROM THE TABLE</div><h2 data-text="aboutHeading">COME AS YOU ARE</h2><div class="copy" id="bio"></div><blockquote class="quote" data-text="quote">“Tarot does not tell you what to do. It gives your own wisdom a language.”</blockquote><div class="ornament">☾ ✦ ☽</div></article><aside class="paper portrait"><div data-text="portraitLabel">A quiet ritual for noisy crossroads.</div></aside></div></section>
+    <section class="offerings" id="readings"><div class="wrap"><div class="offerings-head"><div class="label">WAYS TO SIT WITH THE CARDS</div><h2>Choose your reading</h2><p class="copy" data-text="offeringsIntro">Each session is a collaborative, nonjudgmental conversation. Choose the space that feels right for your question.</p></div><div class="reading-grid" id="reading-grid"></div></div></section>
+    <section id="approach"><div class="wrap spread"><aside class="paper card-stage"><div class="tarot-card" data-tilt><div><i>☾</i><b data-text="cardTitle">THE SEEKER</b><small>LISTEN · NOTICE · CHOOSE</small></div></div></aside><article><div class="label">HOW IT WORKS</div><h2 data-text="approachHeading">Clarity, not certainty</h2><div class="copy" id="approach-copy"></div><div class="details" id="faqs"></div></article></div></section>
+    <section class="testimonials" id="kind-words"><div class="wrap"><div class="label">WORDS FROM THE CIRCLE</div><h2>Kind words</h2><div class="testimonial-grid" id="testimonials-grid"></div></div></section>
+    <section class="booking" id="book"><div class="wrap"><article class="paper"><div class="label">WHEN YOU ARE READY</div><h2 data-text="bookingHeading">Make space for yourself</h2><p class="copy" data-text="bookingCopy">Choose a time that feels spacious. You will receive a confirmation and a simple note on how to prepare.</p><div class="actions" style="justify-content:center"><a class="button" data-link="bookingLink" data-text="bookingLabel" href="#">BOOK YOUR READING</a><a class="button ghost" data-link="contactLink" data-text="contactLabel" href="#">ASK A QUESTION</a></div><p class="mini" data-text="bookingNote">Online sessions are held by video call. In-person sessions are available by arrangement.</p></article></div></section>
+  </main>
+  <footer><div class="wrap"><span data-text="name">READER NAME</span> © <span id="year"></span> · <span class="template-note">Built from the Tarot Reader Template</span><br><span>NO. 0/23 · OBSERVATORY CLASS · DO NOT SUBMERGE IN MERCURY</span></div></footer>
+  <script>
+    /*
+      ┌─────────────────────────────────────────────────────────────┐
+      │ CUSTOMIZE THIS OBJECT. Everything else can stay untouched.  │
+      └─────────────────────────────────────────────────────────────┘
+      Use a real scheduling link for bookingLink (Calendly, Acuity, Square, etc.).
+      Image values can be local paths (e.g. ./images/portrait.jpg) or https URLs.
+    */
+    const READER = {
+      name: 'READER NAME', practice: 'TAROT & INTUITIVE GUIDANCE',
+      announcement: 'BOOKINGS ARE OPEN FOR THIS LUNAR CYCLE',
+      eyebrow: 'TAROT · INTUITION · GENTLE CLARITY',
+      tagline: 'A grounded place to listen closely to the questions moving underneath your life.',
+      heroImage: '', portraitImage: '', portraitLabel: 'A quiet ritual for noisy crossroads.',
+      bookingLink: 'https://example.com', contactLink: 'mailto:hello@readername.com',
+      bookingLabel: 'BOOK YOUR READING', contactLabel: 'ASK A QUESTION',
+
+      aboutHeading: 'COME AS YOU ARE',
+      bio: [
+        'Use this space to introduce the reader and the feeling of a session. Describe the kind of care, curiosity, and perspective someone can expect when they arrive with a question.',
+        'This is not about sounding mystical on command. A few specific, human details make a practice feel trustworthy: your background, your values, the tools you use, and who you especially enjoy working with.'
+      ],
+      quote: '“Tarot does not tell you what to do. It gives your own wisdom a language.”',
+
+      offeringsIntro: 'Each session is a collaborative, nonjudgmental conversation. Choose the space that feels right for your question.',
+      readings: [
+        {name:'The Check-In', duration:'30 MINUTES', price:'$55', description:'A focused reading for one present question, a choice, or a little perspective before you move forward.', link:'https://example.com', label:'BOOK A CHECK-IN'},
+        {name:'The Deep Dive', duration:'60 MINUTES', price:'$95', description:'An unhurried session for a meaningful crossroads, a relationship pattern, a transition, or an unfolding season.', link:'https://example.com', label:'BOOK A DEEP DIVE'},
+        {name:'The Year Ahead', duration:'90 MINUTES', price:'$140', description:'A spacious look at the themes, invitations, and practical anchors that may shape the months ahead.', link:'https://example.com', label:'BOOK YEAR AHEAD'}
+      ],
+
+      cardTitle: 'THE SEEKER', approachHeading: 'CLARITY, NOT CERTAINTY',
+      approach: [
+        'Tarot is a reflective practice, not a script for the future. We begin with what is real for you now, pull cards with intention, and notice the patterns and possibilities that emerge.',
+        'You are always the expert on your own life. I offer images, questions, and perspective—not commands, guarantees, or a replacement for professional support.'
+      ],
+      faqs: [
+        ['Do I need to prepare a question?', 'A question is welcome, but not required. A feeling, a crossroads, or simply “what needs my attention?” is plenty.'],
+        ['What happens after I book?', 'You will receive a confirmation with the session link or location, payment details, and a brief note on how to arrive comfortably.'],
+        ['Can tarot make decisions for me?', 'No. The cards are a prompt for reflection and conversation. You remain in charge of your own choices and practical decisions.']
+      ],
+      testimonials: [
+        {text:'I left with language for something I had felt for months, plus a few gentle next steps that actually fit my life.', name:'CLIENT · ONE-HOUR READING'},
+        {text:'Warm, clear, and wonderfully un-dramatic. It felt like talking with the wisest version of myself.', name:'CLIENT · RETURNING SESSION'},
+        {text:'The reading gave me a calm place to hear myself again. I have been carrying that feeling with me all week.', name:'CLIENT · FIRST READING'}
+      ],
+      bookingHeading: 'MAKE SPACE FOR YOURSELF', bookingCopy: 'Choose a time that feels spacious. You will receive a confirmation and a simple note on how to prepare.',
+      bookingNote: 'Online sessions are held by video call. In-person sessions are available by arrangement.',
+      palette: { gold:'#e9c873', violet:'#8b4bba', lilac:'#dfbfff', mist:'#b6efe9' }
+    };
+
+    const $ = (selector, root=document) => root.querySelector(selector);
+    const escapeHTML = value => String(value).replace(/[&<>"']/g, char => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[char]);
+    const safeURL = value => /^(https?:|mailto:|tel:|#|\.\/|\.\.\/|\/)/.test(value || '') ? value : '#';
+    const imageStyle = value => value ? `url("${String(value).replace(/"/g, '%22')}")` : '';
+    document.title = `${READER.name} — Tarot & Intuitive Guidance`;
+    Object.entries(READER.palette || {}).forEach(([key, value]) => document.documentElement.style.setProperty(`--${key}`, value));
+    document.documentElement.style.setProperty('--hero-image', imageStyle(READER.heroImage) || 'radial-gradient(ellipse at 52% 35%,#a057a488,transparent 36%),linear-gradient(135deg,#170527,#503067)');
+    document.documentElement.style.setProperty('--portrait-image', imageStyle(READER.portraitImage) || 'linear-gradient(145deg,#6e3a74,#1d163b 70%)');
+    document.querySelectorAll('[data-text]').forEach(el => { const value = READER[el.dataset.text]; if (value) el.textContent = value; });
+    document.querySelectorAll('[data-link]').forEach(el => { const url = safeURL(READER[el.dataset.link]); el.href = url; if (/^https?:/.test(url)) { el.target = '_blank'; el.rel = 'noreferrer'; } });
+    $('#bio').innerHTML = READER.bio.map(paragraph => `<p>${escapeHTML(paragraph)}</p>`).join('');
+    $('#reading-grid').innerHTML = READER.readings.map(reading => `<article class="reading" data-tilt data-sheen><div class="label">${escapeHTML(reading.duration)}</div><h3>${escapeHTML(reading.name)}</h3><p>${escapeHTML(reading.description)}</p><div class="time">${escapeHTML(reading.duration)}</div><div class="price">${escapeHTML(reading.price)}</div><a class="button" href="${safeURL(reading.link)}" ${/^https?:/.test(safeURL(reading.link)) ? 'target="_blank" rel="noreferrer"' : ''}>${escapeHTML(reading.label)}</a></article>`).join('');
+    $('#approach-copy').innerHTML = READER.approach.map(paragraph => `<p>${escapeHTML(paragraph)}</p>`).join('');
+    $('#faqs').innerHTML = READER.faqs.map(([question,answer]) => `<details><summary>${escapeHTML(question)}</summary><p>${escapeHTML(answer)}</p></details>`).join('');
+    $('#testimonials-grid').innerHTML = READER.testimonials.map(testimonial => `<article class="testimonial" data-tilt data-sheen><q>${escapeHTML(testimonial.text)}</q><cite>${escapeHTML(testimonial.name)}</cite></article>`).join('');
+    $('#year').textContent = new Date().getFullYear();
+
+    /* SIGNAL BEHAVIOUR: respectful of reduced motion; never needed to book. */
+    const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const cursor = $('.cursor-orb');
+    const protocol = $('#protocol-state span');
+    const setPointer = event => {
+      const x = `${event.clientX}px`, y = `${event.clientY}px`;
+      document.body.style.setProperty('--x', x); document.body.style.setProperty('--y', y);
+      document.documentElement.style.setProperty('--px', x); document.documentElement.style.setProperty('--py', y);
+      if (cursor) { cursor.style.left = x; cursor.style.top = y; }
+    };
+    addEventListener('pointermove', setPointer, {passive:true});
+    document.querySelectorAll('a,button,summary').forEach(control => {
+      control.addEventListener('pointerenter', () => cursor && cursor.classList.add('is-link'));
+      control.addEventListener('pointerleave', () => cursor && cursor.classList.remove('is-link'));
+    });
+    document.querySelectorAll('p,h1,h2,h3,q,blockquote,.copy,.tagline').forEach(textSurface => {
+      textSurface.addEventListener('pointerenter', () => cursor && cursor.classList.add('is-text'));
+      textSurface.addEventListener('pointerleave', () => cursor && cursor.classList.remove('is-text'));
+    });
+    document.querySelectorAll('.nav a').forEach(link => link.addEventListener('pointerenter', () => {
+      link.classList.remove('flash-echo'); void link.offsetWidth; link.classList.add('flash-echo');
+    }));
+    if (!reduceMotion) {
+      document.querySelectorAll('[data-tilt]').forEach(surface => {
+        surface.addEventListener('pointermove', event => {
+          const rect = surface.getBoundingClientRect();
+          const x = (event.clientX - rect.left) / rect.width, y = (event.clientY - rect.top) / rect.height;
+          surface.style.setProperty('--tilt-x', `${(0.5 - y) * 3.2}deg`);
+          surface.style.setProperty('--tilt-y', `${(x - 0.5) * 3.6}deg`);
+          surface.style.setProperty('--px', `${x * 100}%`); surface.style.setProperty('--py', `${y * 100}%`);
+        });
+        surface.addEventListener('pointerleave', () => { surface.style.setProperty('--tilt-x','0deg'); surface.style.setProperty('--tilt-y','0deg'); });
+      });
+      let scrollQueued = false;
+      addEventListener('scroll', () => { if (!scrollQueued) { scrollQueued = true; requestAnimationFrame(() => { document.documentElement.style.setProperty('--scroll', `${scrollY}px`); scrollQueued = false; }); } }, {passive:true});
+    }
+    const discoveries = new Set();
+    const discover = type => {
+      discoveries.add(type);
+      if (discoveries.size >= 4) { document.body.classList.add('signal-acquired'); protocol.textContent = 'SIGNAL ACQUIRED · 1701-A'; }
+    };
+    document.querySelectorAll('.nav a').forEach(node => node.addEventListener('click', () => discover('route')));
+    document.querySelectorAll('.reading').forEach(node => node.addEventListener('pointerenter', () => discover('offering'), {once:true}));
+    $('.tarot-card').addEventListener('pointerenter', () => discover('arcana'), {once:true});
+    document.querySelectorAll('details').forEach(node => node.addEventListener('toggle', () => node.open && discover('question')));
+
+    // The office has never kept the small object in the same enclosure twice.
+    const relicHosts = [...document.querySelectorAll('.panel,.portrait,.reading,.card-stage,.testimonial')];
+    if (relicHosts.length) {
+      const relic = document.createElement('span'); relic.className = 'migratory-relic'; relic.textContent = '◒';
+      relic.dataset.secret = 'OBJECT 1701-B: the map remembers you.'; relic.title = 'Uncatalogued movable object';
+      relicHosts[Math.floor(Math.random() * relicHosts.length)].append(relic);
+      relic.addEventListener('pointerenter', () => discover('relic'), {once:true});
+    }
+    const keyBuffer = [];
+    addEventListener('keydown', event => {
+      if (event.metaKey || event.ctrlKey || event.altKey || event.key.length !== 1) return;
+      keyBuffer.push(event.key.toLowerCase()); if (keyBuffer.length > 6) keyBuffer.shift();
+      if (keyBuffer.join('').endsWith('seeker')) {
+        document.body.classList.toggle('oracle-mode'); protocol.textContent = document.body.classList.contains('oracle-mode') ? 'ORACLE MODE · ACTIVE' : 'CHANNEL 404 · STANDBY';
+      }
+    });
+    const now = new Date();
+    if (now.getHours() === 23 && now.getMinutes() === 42) { document.body.classList.add('time-window'); protocol.textContent = '23:42 WINDOW · OPEN'; }
+    if (!reduceMotion && Math.random() < .137) setTimeout(() => document.body.classList.add('passing-signal'), 1701);
+  </script>
+</body>
+</html>
