@@ -69,7 +69,11 @@ const constellationPoints = [
 
 export function HeroSection({ content, isClownMode }) {
   const [logoMotion, setLogoMotion] = useState({ x: 0, y: 0, active: false })
+  const [logoScrollBand, setLogoScrollBand] = useState(0)
+  const heroRootRef = useRef(null)
   const logoMotionFrame = useRef(0)
+  const logoScrollFrame = useRef(0)
+  const lastLogoScrollBand = useRef(0)
 
   const handleLogoMotion = useCallback((event) => {
     if (
@@ -97,8 +101,56 @@ export function HeroSection({ content, isClownMode }) {
 
   useEffect(() => () => cancelAnimationFrame(logoMotionFrame.current), [])
 
+  useEffect(() => {
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
+
+    function commitLogoScroll() {
+      logoScrollFrame.current = 0
+
+      if (reducedMotion.matches || !heroRootRef.current) {
+        if (lastLogoScrollBand.current !== 0) {
+          lastLogoScrollBand.current = 0
+          setLogoScrollBand(0)
+        }
+        return
+      }
+
+      const bounds = heroRootRef.current.getBoundingClientRect()
+      const travel = Math.max(bounds.height - window.innerHeight * 0.35, 1)
+      const progress = Math.min(
+        Math.max((window.innerHeight * 0.15 - bounds.top) / travel, 0),
+        1,
+      )
+      const nextBand = Math.round(progress * 8)
+
+      if (nextBand !== lastLogoScrollBand.current) {
+        lastLogoScrollBand.current = nextBand
+        setLogoScrollBand(nextBand)
+      }
+    }
+
+    function scheduleLogoScroll() {
+      if (!logoScrollFrame.current) {
+        logoScrollFrame.current = window.requestAnimationFrame(commitLogoScroll)
+      }
+    }
+
+    window.addEventListener('scroll', scheduleLogoScroll, { passive: true })
+    window.addEventListener('resize', scheduleLogoScroll, { passive: true })
+    reducedMotion.addEventListener('change', scheduleLogoScroll)
+    scheduleLogoScroll()
+
+    return () => {
+      window.removeEventListener('scroll', scheduleLogoScroll)
+      window.removeEventListener('resize', scheduleLogoScroll)
+      reducedMotion.removeEventListener('change', scheduleLogoScroll)
+      cancelAnimationFrame(logoScrollFrame.current)
+      logoScrollFrame.current = 0
+    }
+  }, [])
+
   return (
-    <HeroSectionRoot id="home" aria-labelledby="hero-title">
+    <HeroSectionRoot ref={heroRootRef} id="home" aria-labelledby="hero-title">
       <DeepStarMap
         aria-hidden="true"
         viewBox="0 0 1560 920"
@@ -260,6 +312,7 @@ export function HeroSection({ content, isClownMode }) {
                 alt=""
                 fetchPriority="high"
                 decoding="async"
+                data-scroll-band={logoScrollBand}
                 $motionX={logoMotion.x}
                 $motionY={logoMotion.y}
                 $active={logoMotion.active}
@@ -998,6 +1051,12 @@ const SacredInstrument = styled.svg`
     animation: none;
   }
 
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    inset: 50% auto auto 50%;
+    width: min(45rem, 103%);
+    translate: -50% -50%;
+  }
+
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     inset: 50% auto auto 50%;
     width: min(48rem, 92%);
@@ -1076,6 +1135,12 @@ const OrbitingHalo = styled.div`
     animation: none;
   }
 
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    inset: 50% auto auto 50%;
+    width: min(39rem, 90%);
+    translate: -50% -50%;
+  }
+
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     inset: 50% auto auto 50%;
     width: min(42rem, 82%);
@@ -1150,7 +1215,7 @@ const TarotLogoFrame = styled.div`
   }
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    inset-inline: -2%;
+    inset: 0 -2%;
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
@@ -1170,12 +1235,15 @@ const TarotLogoFrame = styled.div`
 `
 
 const TarotLogoMark = styled.img`
+  --logo-scroll-hue: 0deg;
+
   position: relative;
   z-index: ${({ theme }) => theme.zIndex.content};
   width: min(31rem, 82%);
   height: auto;
   object-fit: contain;
   filter:
+    hue-rotate(var(--logo-scroll-hue))
     drop-shadow(0 0 0.8rem ${({ theme }) => theme.colors.effects.goldGlowSoft})
     drop-shadow(0 0 2.2rem ${({ theme }) => theme.colors.effects.violetGlowSoft});
   transform: translateZ(0);
@@ -1191,6 +1259,15 @@ const TarotLogoMark = styled.img`
     transform: translateZ(0) scale(1.025);
   }
 
+  &[data-scroll-band='1'] { --logo-scroll-hue: 12deg; }
+  &[data-scroll-band='2'] { --logo-scroll-hue: 24deg; }
+  &[data-scroll-band='3'] { --logo-scroll-hue: 36deg; }
+  &[data-scroll-band='4'] { --logo-scroll-hue: 48deg; }
+  &[data-scroll-band='5'] { --logo-scroll-hue: 60deg; }
+  &[data-scroll-band='6'] { --logo-scroll-hue: 72deg; }
+  &[data-scroll-band='7'] { --logo-scroll-hue: 84deg; }
+  &[data-scroll-band='8'] { --logo-scroll-hue: 96deg; }
+
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     width: min(30rem, 90%);
   }
@@ -1200,7 +1277,7 @@ const TarotLogoMark = styled.img`
     opacity: ${({ $active }) => ($active ? 0.48 : 0.32)};
     filter:
       url('#hero-logo-liquid')
-      hue-rotate(${({ $motionX = 0 }) => `${$motionX * 32}deg`})
+      hue-rotate(calc(var(--logo-scroll-hue) + ${({ $motionX = 0 }) => `${$motionX * 32}deg`}))
       brightness(${({ $active }) => ($active ? 1.3 : 1.12)})
       saturate(${({ $motionY = 0 }) => 1.12 + Math.abs($motionY) * 0.34})
       drop-shadow(0 0 1.2rem ${({ theme }) => theme.colors.effects.goldGlow})
