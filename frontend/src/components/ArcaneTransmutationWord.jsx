@@ -178,6 +178,11 @@ const ArcaneGlyph = styled.span`
     `
   }}
 
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    width: 0.49em;
+    margin-inline: 0;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     animation: none;
     transition: none;

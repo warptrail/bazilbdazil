@@ -1,4 +1,3 @@
-import { Fragment } from 'react'
 import styled from 'styled-components'
 import { ArcaneTransmutationWord } from './ArcaneTransmutationWord'
 
@@ -11,9 +10,9 @@ export function ArcaneTitle({ title, enchantedWord = 'Bacchanalia' }) {
   return (
     <TitleText aria-hidden="true">
       {words.map((word, index) => (
-        <Fragment key={`${word}-${index}`}>
+        <TitleWord key={`${word}-${index}`}>
           {word === enchantedWord ? <ArcaneTransmutationWord word={word} /> : word}{' '}
-        </Fragment>
+        </TitleWord>
       ))}
     </TitleText>
   )
@@ -21,4 +20,14 @@ export function ArcaneTitle({ title, enchantedWord = 'Bacchanalia' }) {
 
 const TitleText = styled.span`
   display: contents;
+`
+
+const TitleWord = styled.span`
+  display: inline;
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    display: block;
+    width: max-content;
+    white-space: nowrap;
+  }
 `

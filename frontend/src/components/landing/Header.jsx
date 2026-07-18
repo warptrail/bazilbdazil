@@ -602,7 +602,10 @@ const HeaderActions = styled.div`
   perspective-origin: center;
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    padding-inline-end: ${({ theme }) => theme.spacing.sm};
+    padding-inline-end: calc(
+      ${({ theme }) => theme.layout.controlMinHeight} +
+        ${({ theme }) => theme.spacing.md}
+    );
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
