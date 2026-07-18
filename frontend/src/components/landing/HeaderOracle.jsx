@@ -4,7 +4,7 @@ import * as THREE from 'three'
 import { ArcaneBurstWord } from '../ArcaneBurstWord'
 import { ViewportPlasma } from './ViewportPlasma'
 
-const BRAND_LABEL = 'Bazil B. Dazil — release an oracle flare'
+const BRAND_LABEL = 'Bazil B. Dazil — release an oracle flare and guide the eye'
 const ORBIT_POINT_COUNT = 23
 const PLASMA_PARTICLE_COUNT = 96
 
@@ -291,7 +291,20 @@ export function HeaderOracle({ condensed = false, onBurstChange }) {
       lastClientX: window.innerWidth / 2,
       lastClientY: window.innerHeight / 2,
       lastMoveAt: performance.now(),
+      lastTouchAt: 0,
+      lastInputType: 'idle',
+      touchActive: false,
     }
+    const orientation = {
+      active: false,
+      baseBeta: null,
+      baseGamma: null,
+      targetX: 0,
+      targetY: 0,
+    }
+    const isTouchDevice =
+      navigator.maxTouchPoints > 0 || window.matchMedia('(pointer: coarse)').matches
+    const oracleButton = canvas.closest('button')
     let animationFrame = 0
     let lastFrameAt = performance.now()
     let nextBlinkAt = lastFrameAt + 2400 + Math.random() * 2800
@@ -299,6 +312,8 @@ export function HeaderOracle({ condensed = false, onBurstChange }) {
     let isBlinking = false
     let flareStartedAt = -1
     let handledFlareRequest = flareRequestRef.current
+    let orientationListenerAttached = false
+    let orientationPermissionRequested = false
 
     const resize = () => {
       const { width, height } = canvas.getBoundingClientRect()
@@ -310,25 +325,122 @@ export function HeaderOracle({ condensed = false, onBurstChange }) {
       camera.updateProjectionMatrix()
     }
 
-    const updatePointer = (event) => {
+    const updateFromClientPoint = (clientX, clientY, inputType) => {
       const bounds = canvas.getBoundingClientRect()
       const centerX = bounds.left + bounds.width / 2
       const centerY = bounds.top + bounds.height / 2
-      const eyeCenterX = centerX
-      const eyeCenterY = centerY
-      const deltaX = event.clientX - pointer.lastClientX
-      const deltaY = event.clientY - pointer.lastClientY
+      const isTouch = inputType === 'touch'
+      const deltaX = clientX - pointer.lastClientX
+      const deltaY = clientY - pointer.lastClientY
       const elapsed = Math.max(16, performance.now() - pointer.lastMoveAt)
-      const distance = Math.hypot(event.clientX - eyeCenterX, event.clientY - eyeCenterY)
-      const influence = Math.max(bounds.width, bounds.height) * 1.75
+      const distance = Math.hypot(clientX - centerX, clientY - centerY)
+      const horizontalRange = isTouch
+        ? Math.max(window.innerWidth * 0.55, bounds.width * 2)
+        : Math.max(bounds.width / 2, 1)
+      const verticalRange = isTouch
+        ? Math.max(window.innerHeight * 0.55, bounds.height * 3)
+        : Math.max(bounds.height * 1.5, 1)
+      const influence = isTouch
+        ? Math.hypot(window.innerWidth, window.innerHeight) * 0.8
+        : Math.max(bounds.width, bounds.height) * 1.75
 
-      pointer.targetX = clamp((event.clientX - centerX) / Math.max(bounds.width / 2, 1), -1, 1)
-      pointer.targetY = clamp((centerY - event.clientY) / Math.max(bounds.height * 1.5, 1), -1, 1)
+      pointer.targetX = clamp((clientX - centerX) / horizontalRange, -1, 1)
+      pointer.targetY = clamp((centerY - clientY) / verticalRange, -1, 1)
       pointer.speed = clamp(Math.hypot(deltaX, deltaY) / elapsed / 1.6, 0, 1)
       pointer.proximity = 1 - clamp(distance / influence, 0, 1)
-      pointer.lastClientX = event.clientX
-      pointer.lastClientY = event.clientY
+      pointer.lastClientX = clientX
+      pointer.lastClientY = clientY
       pointer.lastMoveAt = performance.now()
+      pointer.lastInputType = inputType
+    }
+
+    const updatePointer = (event) => {
+      if (event.pointerType === 'touch') return
+      updateFromClientPoint(event.clientX, event.clientY, 'pointer')
+    }
+
+    const updateTouch = (event) => {
+      const touch = event.touches[0]
+      if (!touch) return
+
+      pointer.touchActive = true
+      pointer.lastTouchAt = performance.now()
+      pointer.pressed = event.type === 'touchstart' ? 1 : Math.max(pointer.pressed, 0.28)
+      updateFromClientPoint(touch.clientX, touch.clientY, 'touch')
+    }
+
+    const endTouch = () => {
+      pointer.touchActive = false
+      pointer.lastTouchAt = performance.now()
+      pointer.pressed = 0
+    }
+
+    const resetOrientationCalibration = () => {
+      orientation.baseBeta = null
+      orientation.baseGamma = null
+    }
+
+    const updateOrientation = (event) => {
+      if (typeof event.beta !== 'number' || typeof event.gamma !== 'number') return
+
+      if (orientation.baseBeta === null || orientation.baseGamma === null) {
+        orientation.baseBeta = event.beta
+        orientation.baseGamma = event.gamma
+      }
+
+      const betaDelta = event.beta - orientation.baseBeta
+      const gammaDelta = event.gamma - orientation.baseGamma
+      const screenAngle = window.screen.orientation?.angle ?? window.orientation ?? 0
+      let tiltX = gammaDelta
+      let tiltY = -betaDelta
+
+      if (screenAngle === 90) {
+        tiltX = betaDelta
+        tiltY = gammaDelta
+      } else if (screenAngle === -90 || screenAngle === 270) {
+        tiltX = -betaDelta
+        tiltY = -gammaDelta
+      } else if (Math.abs(screenAngle) === 180) {
+        tiltX = -gammaDelta
+        tiltY = betaDelta
+      }
+
+      orientation.targetX = clamp(tiltX / 22, -1, 1)
+      orientation.targetY = clamp(tiltY / 22, -1, 1)
+      orientation.active = true
+    }
+
+    const attachOrientationListener = () => {
+      if (orientationListenerAttached || reduceMotion) return
+      window.addEventListener('deviceorientation', updateOrientation, { passive: true })
+      orientationListenerAttached = true
+    }
+
+    const requestOrientationAccess = async (event) => {
+      if (
+        event.pointerType !== 'touch' ||
+        reduceMotion ||
+        !isTouchDevice ||
+        orientationPermissionRequested ||
+        typeof window.DeviceOrientationEvent === 'undefined'
+      ) {
+        return
+      }
+
+      orientationPermissionRequested = true
+      const requestPermission = window.DeviceOrientationEvent.requestPermission
+
+      if (typeof requestPermission !== 'function') {
+        attachOrientationListener()
+        return
+      }
+
+      try {
+        const permission = await requestPermission.call(window.DeviceOrientationEvent)
+        if (permission === 'granted') attachOrientationListener()
+      } catch {
+        // Touch tracking remains available when sensor access is denied or unavailable.
+      }
     }
 
     const handlePointerDown = () => {
@@ -345,10 +457,26 @@ export function HeaderOracle({ condensed = false, onBurstChange }) {
       const delta = Math.min((time - lastFrameAt) / 1000, 0.05)
       lastFrameAt = time
       const ease = 1 - Math.pow(0.001, delta)
+
+      if (!pointer.touchActive && orientation.active) {
+        pointer.targetX = orientation.targetX
+        pointer.targetY = orientation.targetY
+        pointer.lastInputType = 'orientation'
+      } else if (
+        !pointer.touchActive &&
+        pointer.lastInputType === 'touch' &&
+        time - pointer.lastTouchAt > 800
+      ) {
+        const returnEase = 1 - Math.pow(0.08, delta)
+        pointer.targetX += (0 - pointer.targetX) * returnEase
+        pointer.targetY += (0 - pointer.targetY) * returnEase
+      }
+
       pointer.x += (pointer.targetX - pointer.x) * ease
       pointer.y += (pointer.targetY - pointer.y) * ease
       pointer.speed *= 0.93
       pointer.pressed *= 0.9
+      if (pointer.touchActive) pointer.pressed = Math.max(pointer.pressed, 0.18)
 
       if (handledFlareRequest !== flareRequestRef.current) {
         handledFlareRequest = flareRequestRef.current
@@ -458,8 +586,24 @@ export function HeaderOracle({ condensed = false, onBurstChange }) {
     const resizeObserver = new ResizeObserver(resize)
     resizeObserver.observe(canvas)
     window.addEventListener('pointermove', updatePointer, { passive: true })
+    window.addEventListener('touchstart', updateTouch, { passive: true })
+    window.addEventListener('touchmove', updateTouch, { passive: true })
+    window.addEventListener('touchend', endTouch, { passive: true })
+    window.addEventListener('touchcancel', endTouch, { passive: true })
     canvas.addEventListener('pointerdown', handlePointerDown)
     window.addEventListener('pointerup', handlePointerUp, { passive: true })
+    oracleButton?.addEventListener('pointerdown', requestOrientationAccess)
+    window.screen.orientation?.addEventListener('change', resetOrientationCalibration)
+
+    if (
+      isTouchDevice &&
+      !reduceMotion &&
+      typeof window.DeviceOrientationEvent !== 'undefined' &&
+      typeof window.DeviceOrientationEvent.requestPermission !== 'function'
+    ) {
+      attachOrientationListener()
+    }
+
     resize()
     animationFrame = window.requestAnimationFrame(render)
 
@@ -467,8 +611,17 @@ export function HeaderOracle({ condensed = false, onBurstChange }) {
       window.cancelAnimationFrame(animationFrame)
       resizeObserver.disconnect()
       window.removeEventListener('pointermove', updatePointer)
+      window.removeEventListener('touchstart', updateTouch)
+      window.removeEventListener('touchmove', updateTouch)
+      window.removeEventListener('touchend', endTouch)
+      window.removeEventListener('touchcancel', endTouch)
       canvas.removeEventListener('pointerdown', handlePointerDown)
       window.removeEventListener('pointerup', handlePointerUp)
+      oracleButton?.removeEventListener('pointerdown', requestOrientationAccess)
+      window.screen.orientation?.removeEventListener('change', resetOrientationCalibration)
+      if (orientationListenerAttached) {
+        window.removeEventListener('deviceorientation', updateOrientation)
+      }
       shellGeometry.dispose()
       shellMaterial.dispose()
       irisGeometry.dispose()

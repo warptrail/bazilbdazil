@@ -937,9 +937,10 @@ const HeroBorderBand = styled.div`
   }
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    top: ${({ theme }) => theme.spacing.xs};
     width: min(92%, 31rem);
     gap: ${({ theme }) => theme.spacing.sm};
-    padding-inline: ${({ theme }) => theme.spacing.md};
+    padding: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.md};
   }
 `
 
@@ -953,10 +954,13 @@ const HeroBorderLabel = styled(Eyebrow)`
   animation: ${plasmaFlicker} ${({ theme }) => theme.motion.duration.twinkle} ease-in-out infinite;
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    max-width: 15rem;
-    overflow: hidden;
-    font-size: 0.58rem;
-    text-overflow: ellipsis;
+    max-width: 100%;
+    min-width: 0;
+    overflow: visible;
+    font-size: 0.54rem;
+    letter-spacing: ${({ theme }) => theme.typography.letterSpacing.label};
+    line-height: 1.2;
+    text-overflow: clip;
     white-space: nowrap;
   }
 
@@ -1175,6 +1179,14 @@ const HeroPrimaryAction = styled(PrimaryButton)`
 
   @media (max-width: 520px) {
     width: 100%;
+  }
+
+  @media (max-width: 360px) {
+    gap: ${({ theme }) => theme.spacing.sm};
+    padding-inline: ${({ theme }) => theme.spacing.lg};
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    white-space: nowrap;
   }
 `
 

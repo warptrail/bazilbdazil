@@ -396,7 +396,7 @@ const HeaderFrame = styled.div`
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     height: calc(
       ${({ theme }) => theme.layout.compactHeaderOffset} +
-        ${({ theme }) => theme.spacing.md}
+        ${({ theme }) => theme.spacing.lg}
     );
   }
 
@@ -653,7 +653,7 @@ const Navigation = styled.nav`
   }
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    max-height: 2.65rem;
+    max-height: 2.75rem;
     margin-inline: 0;
     padding: ${({ theme }) => theme.spacing.xs} 0 0;
     border-top-color: ${({ theme }) => theme.colors.border.surfaceRaised};
@@ -927,7 +927,7 @@ const NavigationLink = styled(NavLink)`
     `}
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    min-height: 2.25rem;
+    min-height: 2.5rem;
     padding-inline: ${({ theme }) => theme.spacing.md};
     font-size: ${({ theme }) => theme.typography.fontSize.xs};
   }
