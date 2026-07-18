@@ -1,4 +1,4 @@
-import styled, { keyframes } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
 import {
   BodyCopy,
   Card,
@@ -9,7 +9,6 @@ import {
 } from '../../styles/primitives'
 
 export function GallerySection({ content: gallery }) {
-
   return (
     <GalleryRoot id="gallery" aria-labelledby="gallery-heading">
       <GallerySky aria-hidden="true" focusable="false" viewBox="0 0 1200 720">
@@ -32,15 +31,17 @@ export function GallerySection({ content: gallery }) {
           <RitualLabel $tone="signal">{gallery.eyebrow}</RitualLabel>
           <GalleryHeading id="gallery-heading">{gallery.title}</GalleryHeading>
           <GalleryDescription>{gallery.description}</GalleryDescription>
+          {gallery.status ? <GalleryStatus>{gallery.status}</GalleryStatus> : null}
         </GalleryIntro>
 
-        <GalleryGrid $imageCount={gallery.images.length}>
+        <GalleryGrid>
           {gallery.images.map((image) => (
             <GalleryFigure
               key={image.id}
               $variant="quiet"
               $radius="xl"
               $orientation={image.orientation}
+              $slot={image.slot}
             >
               <GalleryGeometry aria-hidden="true" focusable="false" viewBox="0 0 240 240">
                 <GalleryOrbit cx="120" cy="120" r="102" />
@@ -50,27 +51,36 @@ export function GallerySection({ content: gallery }) {
                 <GalleryAxis d="M8 120h224M120 8v224" />
                 <GalleryCore d="m120 95 7 18 18 7-18 7-7 18-7-18-18-7 18-7Z" />
               </GalleryGeometry>
-              <GalleryPicture>
-                <GallerySource
-                  type="image/avif"
-                  srcSet={image.avifSrcSet}
-                  sizes={image.sizes}
-                />
-                <GallerySource
-                  type="image/webp"
-                  srcSet={image.webpSrcSet}
-                  sizes={image.sizes}
-                />
-                <GalleryImage
-                  src={image.src}
-                  width={image.width}
-                  height={image.height}
-                  alt={image.alt}
-                  loading="lazy"
-                  decoding="async"
-                  $orientation={image.orientation}
-                />
-              </GalleryPicture>
+              {image.placeholder ? (
+                <GalleryPlaceholder role="img" aria-label={image.alt}>
+                  <PlaceholderVault aria-hidden="true">
+                    <PlaceholderGlyph>{image.glyph}</PlaceholderGlyph>
+                    <PlaceholderSignal>Awaiting material</PlaceholderSignal>
+                  </PlaceholderVault>
+                </GalleryPlaceholder>
+              ) : (
+                <GalleryPicture>
+                  <GallerySource
+                    type="image/avif"
+                    srcSet={image.avifSrcSet}
+                    sizes={image.sizes}
+                  />
+                  <GallerySource
+                    type="image/webp"
+                    srcSet={image.webpSrcSet}
+                    sizes={image.sizes}
+                  />
+                  <GalleryImage
+                    src={image.src}
+                    width={image.width}
+                    height={image.height}
+                    alt={image.alt}
+                    loading="lazy"
+                    decoding="async"
+                    $orientation={image.orientation}
+                  />
+                </GalleryPicture>
+              )}
               <GalleryCaption $tone="metal">{image.caption}</GalleryCaption>
             </GalleryFigure>
           ))}
@@ -190,21 +200,63 @@ const GalleryHeading = styled(DisplayHeading).attrs({
 
 const GalleryDescription = styled(BodyCopy)``
 
+const GalleryStatus = styled(RitualLabel).attrs({
+  $tone: 'metal',
+})`
+  width: fit-content;
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.md};
+  border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
+    ${({ theme }) => theme.colors.border.etched};
+  background: ${({ theme }) => theme.colors.background.surfacePressed};
+
+  &::before {
+    margin-right: ${({ theme }) => theme.spacing.sm};
+    color: ${({ theme }) => theme.colors.accent.acid};
+    content: '◆';
+  }
+`
+
+const gallerySlotStyles = {
+  primary: css`
+    grid-column: 1 / 8;
+    grid-row: 1 / 7;
+  `,
+  tower: css`
+    grid-column: 8 / 13;
+    grid-row: 2 / 9;
+  `,
+  portal: css`
+    grid-column: 1 / 5;
+    grid-row: 7 / 11;
+  `,
+  relic: css`
+    grid-column: 5 / 8;
+    grid-row: 7 / 12;
+  `,
+  corridor: css`
+    grid-column: 8 / 13;
+    grid-row: 9 / 12;
+  `,
+  altar: css`
+    grid-column: 1 / 6;
+    grid-row: 12 / 15;
+  `,
+  threshold: css`
+    grid-column: 6 / 13;
+    grid-row: 12 / 16;
+  `,
+}
+
 const GalleryGrid = styled.div`
   position: relative;
   display: grid;
   gap: ${({ theme }) => theme.spacing.lg};
-  align-items: end;
+  align-items: stretch;
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) {
-    grid-template-columns: ${({ $imageCount }) =>
-      $imageCount > 1 ? 'minmax(0, 3fr) minmax(16rem, 2fr)' : 'minmax(0, 1fr)'};
-    gap: ${({ theme }) => theme.spacing['4xl']};
-
-    & > :nth-child(even) {
-      margin-top: ${({ theme }) => theme.spacing['5xl']};
-      margin-bottom: -${({ theme }) => theme.spacing['5xl']};
-    }
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    grid-template-rows: repeat(15, clamp(3rem, 4.2vw, 4.75rem));
+    gap: ${({ theme }) => theme.spacing.xl};
   }
 `
 
@@ -213,6 +265,8 @@ const GalleryFigure = styled(Card).attrs({
 })`
   position: relative;
   display: grid;
+  grid-template-rows: minmax(0, 1fr) auto;
+  height: 100%;
   margin: 0;
   padding: ${({ theme }) => theme.spacing.md};
   overflow: visible;
@@ -234,6 +288,10 @@ const GalleryFigure = styled(Card).attrs({
       theme.motion.easing.enter},
     border-color ${({ theme }) => theme.transitions.base},
     box-shadow ${({ theme }) => theme.transitions.base};
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) {
+    ${({ $slot }) => gallerySlotStyles[$slot] ?? gallerySlotStyles.primary}
+  }
 
   &::before,
   &::after {
@@ -289,6 +347,7 @@ const GalleryPicture = styled.picture`
   position: relative;
   z-index: ${({ theme }) => theme.zIndex.content};
   display: block;
+  height: 100%;
   overflow: hidden;
   border-radius: ${({ theme }) => theme.radii.lg};
 
@@ -362,6 +421,11 @@ const GalleryImage = styled.img`
     }
   }
 
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) {
+    height: 100%;
+    aspect-ratio: auto;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     transition-duration: ${({ theme }) => theme.motion.duration.reduced};
 
@@ -369,6 +433,135 @@ const GalleryImage = styled.img`
       transform: none;
     }
   }
+`
+
+const placeholderSignal = keyframes`
+  0%, 100% { opacity: 0.46; filter: hue-rotate(0deg); }
+  50% { opacity: 0.92; filter: hue-rotate(42deg); }
+`
+
+const GalleryPlaceholder = styled.div`
+  position: relative;
+  z-index: ${({ theme }) => theme.zIndex.content};
+  display: grid;
+  min-height: 13rem;
+  overflow: hidden;
+  place-items: center;
+  border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
+    ${({ theme }) => theme.colors.border.etched};
+  border-radius: ${({ theme }) => theme.radii.lg};
+  background:
+    repeating-linear-gradient(
+      90deg,
+      transparent 0,
+      transparent 12%,
+      ${({ theme }) => theme.colors.border.surface} 12.2%,
+      transparent 12.5%
+    ),
+    radial-gradient(
+      ellipse at 50% 108%,
+      ${({ theme }) => theme.colors.effects.acidGlowSoft},
+      transparent 46%
+    ),
+    linear-gradient(
+      155deg,
+      ${({ theme }) => theme.colors.background.panelPlum},
+      ${({ theme }) => theme.colors.background.surfacePressed} 62%,
+      ${({ theme }) => theme.colors.background.panelTeal}
+    );
+  box-shadow:
+    inset 0 0 ${({ theme }) => theme.spacing['5xl']}
+      ${({ theme }) => theme.colors.effects.violetGlowSoft},
+    inset 0 -${({ theme }) => theme.spacing['4xl']} ${({ theme }) => theme.spacing['5xl']}
+      ${({ theme }) => theme.colors.background.canvas};
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) {
+    min-height: 0;
+  }
+
+  &::before {
+    position: absolute;
+    top: 14%;
+    right: 16%;
+    bottom: -18%;
+    left: 16%;
+    border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
+      ${({ theme }) => theme.colors.border.filigree};
+    border-bottom: 0;
+    border-radius: 50% 50% 0 0 / 24% 24% 0 0;
+    box-shadow:
+      inset 0 0 ${({ theme }) => theme.spacing['4xl']}
+        ${({ theme }) => theme.colors.effects.goldGlowSoft},
+      0 0 ${({ theme }) => theme.spacing['3xl']}
+        ${({ theme }) => theme.colors.effects.violetGlowSoft};
+    content: '';
+  }
+
+  &::after {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      112deg,
+      transparent 34%,
+      ${({ theme }) => theme.colors.effects.moonlightSoft} 49%,
+      transparent 62%
+    );
+    background-position: 130% 0;
+    background-size: 260% 100%;
+    content: '';
+    opacity: 0;
+    transition:
+      opacity ${({ theme }) => theme.transitions.base},
+      background-position ${({ theme }) => theme.motion.duration.ritual}
+        ${({ theme }) => theme.motion.easing.enter};
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    ${GalleryFigure}:hover &::after {
+      background-position: -30% 0;
+      opacity: 1;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    &::after {
+      display: none;
+    }
+  }
+`
+
+const PlaceholderVault = styled.div`
+  position: relative;
+  z-index: ${({ theme }) => theme.zIndex.content};
+  display: grid;
+  gap: ${({ theme }) => theme.spacing.md};
+  justify-items: center;
+  color: ${({ theme }) => theme.colors.text.bodyMuted};
+`
+
+const PlaceholderGlyph = styled.span`
+  color: ${({ theme }) => theme.colors.accent.metalPale};
+  font-family: ${({ theme }) => theme.typography.fontFamily.display};
+  font-size: clamp(2.7rem, 8vw, 5.5rem);
+  line-height: 1;
+  text-shadow:
+    0 0 ${({ theme }) => theme.spacing.xl} ${({ theme }) => theme.colors.effects.goldGlow},
+    0 0 ${({ theme }) => theme.spacing['4xl']}
+      ${({ theme }) => theme.colors.effects.violetGlowSoft};
+  animation: ${placeholderSignal} ${({ theme }) => theme.motion.duration.ambient}
+    ${({ theme }) => theme.motion.easing.ambient} infinite;
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+const PlaceholderSignal = styled.span`
+  font-family: ${({ theme }) => theme.typography.fontFamily.mono};
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  font-weight: ${({ theme }) => theme.typography.fontWeight.bold};
+  letter-spacing: ${({ theme }) => theme.typography.letterSpacing.ceremonial};
+  text-transform: uppercase;
 `
 
 const GalleryCaption = styled(RitualLabel).attrs({

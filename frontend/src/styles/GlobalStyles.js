@@ -2,6 +2,24 @@ import { createGlobalStyle } from 'styled-components'
 
 export const GlobalStyles = createGlobalStyle`
   :root {
+    --journey-header-gap: ${({ theme }) => theme.spacing.lg};
+    --journey-header-clearance: calc(
+      0.75rem + ${({ theme }) => theme.layout.headerOffset} + ${({ theme }) => theme.layout.safeArea.top}
+    );
+    --journey-viewport-block: calc(
+      100svh - var(--journey-header-clearance) - var(--journey-header-gap)
+    );
+    --journey-settle-delay: ${({ theme }) => theme.motion.duration.ritual};
+    --journey-stage-top: var(--journey-header-clearance);
+    --journey-stage-height: var(--journey-viewport-block);
+    --journey-stage-bottom: 0px;
+    --atlas-progress: 0;
+    --atlas-energy: 1;
+    --atlas-hue: 0deg;
+    --atlas-turn: 0deg;
+    --atlas-drift: 0rem;
+    --atlas-pulse: 1;
+
     font-family: ${({ theme }) => theme.typography.fontFamily.sans};
     color: ${({ theme }) => theme.colors.text.body};
     background: ${({ theme }) => theme.colors.background.base};
@@ -16,12 +34,49 @@ export const GlobalStyles = createGlobalStyle`
     scrollbar-width: thin;
   }
 
+  @property --atlas-progress {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 0;
+  }
+
+  @property --atlas-energy {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+  }
+
+  @property --atlas-hue {
+    syntax: '<angle>';
+    inherits: true;
+    initial-value: 0deg;
+  }
+
+  @property --atlas-turn {
+    syntax: '<angle>';
+    inherits: true;
+    initial-value: 0deg;
+  }
+
+  @property --atlas-drift {
+    syntax: '<length>';
+    inherits: true;
+    initial-value: 0rem;
+  }
+
+  @property --atlas-pulse {
+    syntax: '<number>';
+    inherits: true;
+    initial-value: 1;
+  }
+
   * {
     box-sizing: border-box;
   }
 
   html {
-    scroll-behavior: smooth;
+    scroll-behavior: auto;
+    scroll-snap-type: none;
     background: ${({ theme }) => theme.colors.background.base};
   }
 
@@ -32,7 +87,7 @@ export const GlobalStyles = createGlobalStyle`
     background-attachment: fixed;
     color: ${({ theme }) => theme.colors.text.body};
     overflow-x: hidden;
-    overscroll-behavior-x: none;
+    overscroll-behavior: none;
   }
 
   body::-webkit-scrollbar {
@@ -160,6 +215,8 @@ export const GlobalStyles = createGlobalStyle`
   @media (prefers-reduced-motion: reduce) {
     html {
       scroll-behavior: auto;
+      scroll-snap-type: none;
+      animation: none;
     }
 
     *,

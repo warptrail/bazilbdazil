@@ -1,5 +1,5 @@
 import { useId } from 'react'
-import styled from 'styled-components'
+import styled, { css } from 'styled-components'
 import { CalBookingEmbed } from '../landing/CalBookingEmbed'
 import {
   BodyCopy,
@@ -8,11 +8,16 @@ import {
   OrnatePanel,
   SigilBadge,
   SpectralHeading,
+  focusVisible,
+  labelText,
   sigilSpin,
 } from '../../styles/primitives'
 
 const calLink = import.meta.env.VITE_CAL_LINK || ''
 const isDevelopment = import.meta.env.DEV
+const calBookingHref = /^https?:\/\//i.test(calLink)
+  ? calLink
+  : `https://cal.com/${calLink.replace(/^\/+/, '')}`
 
 export function BookingExperience({
   id,
@@ -27,7 +32,7 @@ export function BookingExperience({
 
   return (
     <BookingShell id={id} aria-labelledby={headingId} $compact={compact}>
-      <BookingIntro>
+      <BookingIntro $compact={compact}>
         <BookingHeadingRail>
           <BookingSigil aria-hidden="true">✦</BookingSigil>
           <BookingLabel>{label}</BookingLabel>
@@ -37,7 +42,7 @@ export function BookingExperience({
         </BookingTitle>
         <BookingText>{description}</BookingText>
         <BookingDivider aria-hidden="true" />
-        <BookingAstrolabe aria-hidden="true">
+        <BookingAstrolabe aria-hidden="true" $compact={compact}>
           <AstrolabeOrbit $orbit="outer" />
           <AstrolabeOrbit $orbit="middle" />
           <AstrolabeOrbit $orbit="inner" />
@@ -46,11 +51,18 @@ export function BookingExperience({
         </BookingAstrolabe>
       </BookingIntro>
 
-      <BookingCard>
+      <BookingCard $compact={compact}>
         {calLink ? (
           <>
-            <CalBookingEmbed calLink={calLink} />
-            <BookingMeta>Scheduling provided by Cal.com</BookingMeta>
+            <BookingProviderAnchor
+              href={calBookingHref}
+              target="_blank"
+              rel="noreferrer"
+              aria-label="Open this booking calendar on Cal.com in a new tab"
+            >
+              Open on Cal.com
+            </BookingProviderAnchor>
+            <CalBookingEmbed calLink={calLink} compact={compact} />
           </>
         ) : isDevelopment ? (
           <>
@@ -82,6 +94,13 @@ const BookingShell = styled.section`
   gap: ${({ theme }) => theme.spacing['4xl']};
   scroll-margin-top: ${({ theme }) => theme.layout.scrollMargin};
 
+  ${({ $compact, theme }) =>
+    $compact &&
+    css`
+      gap: clamp(${theme.spacing.lg}, 2.4vw, ${theme.spacing['3xl']});
+
+    `}
+
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
     grid-template-columns: ${({ $compact }) =>
       $compact ? 'minmax(15rem, 0.34fr) minmax(0, 1fr)' : 'minmax(18rem, 0.38fr) minmax(0, 1fr)'};
@@ -94,6 +113,12 @@ const BookingIntro = styled.div`
   display: grid;
   align-content: start;
   gap: ${({ theme }) => theme.spacing.md};
+
+  ${({ $compact, theme }) =>
+    $compact &&
+    css`
+      gap: ${theme.spacing.sm};
+    `}
 
   @media (max-width: 1199px) {
     width: min(100%, 38rem);
@@ -160,8 +185,21 @@ const BookingAstrolabe = styled.div`
   animation: ${sigilSpin} ${({ theme }) => theme.motion.duration.orbit}
     ${({ theme }) => theme.motion.easing.ambient} infinite;
 
+  ${({ $compact, theme }) =>
+    $compact &&
+    css`
+      width: min(11rem, 40vw);
+      margin-top: ${theme.spacing.md};
+    `}
+
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     width: min(11rem, 48vw);
+
+    ${({ $compact }) =>
+      $compact &&
+      css`
+        display: none;
+      `}
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -243,11 +281,79 @@ const BookingCard = styled(OrnatePanel).attrs({
   $variant: 'raised',
   $interactive: true,
 })`
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: ${({ theme }) => theme.spacing.md};
   min-width: 0;
   padding: ${({ theme }) => theme.spacing.md};
 
+  ${({ $compact, theme }) =>
+    $compact &&
+    css`
+      box-shadow:
+        ${theme.shadows.surfaceInset},
+        0 0 1.5rem ${theme.colors.effects.violetGlowSoft};
+    `}
+
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) {
     padding: ${({ theme }) => theme.spacing.xl};
+  }
+`
+
+const BookingProviderAnchor = styled.a`
+  position: relative;
+  z-index: ${({ theme }) => theme.zIndex.content};
+  display: inline-flex;
+  align-self: center;
+  align-items: center;
+  gap: ${({ theme }) => theme.spacing.md};
+  min-height: ${({ theme }) => theme.layout.controlMinHeight};
+  padding: ${({ theme }) => theme.spacing.sm} ${({ theme }) => theme.spacing.lg};
+  border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
+    ${({ theme }) => theme.colors.border.filigree};
+  border-radius: ${({ theme }) => theme.radii.pill};
+  color: ${({ theme }) => theme.colors.accent.metalPale};
+  background: ${({ theme }) => theme.colors.background.surfacePressed};
+  box-shadow: ${({ theme }) => theme.shadows.filigree};
+  white-space: nowrap;
+  ${labelText}
+  ${focusVisible}
+  transition:
+    color ${({ theme }) => theme.transitions.fast},
+    border-color ${({ theme }) => theme.transitions.fast},
+    box-shadow ${({ theme }) => theme.transitions.base};
+
+  &::before {
+    content: '✦';
+    color: ${({ theme }) => theme.colors.accent.acid};
+    filter: drop-shadow(0 0 0.45rem ${({ theme }) => theme.colors.effects.acidGlow});
+  }
+
+  &::after {
+    content: '↗';
+    color: ${({ theme }) => theme.colors.accent.signal};
+  }
+
+  @media (hover: hover) {
+    &:hover {
+      color: ${({ theme }) => theme.colors.text.primary};
+      border-color: ${({ theme }) => theme.colors.border.filigreeBright};
+      box-shadow: ${({ theme }) => theme.shadows.metalHover};
+    }
+  }
+
+  @media (forced-colors: active) {
+    border-color: LinkText;
+    color: LinkText;
+    background: Canvas;
+    box-shadow: none;
+
+    &::before,
+    &::after {
+      color: LinkText;
+      filter: none;
+    }
   }
 `
 

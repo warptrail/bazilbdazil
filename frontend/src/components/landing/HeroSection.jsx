@@ -1,10 +1,9 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import styled, { css, keyframes } from 'styled-components'
-import clown640Avif from '../../assets/clown-640.avif'
-import clown1280Avif from '../../assets/clown-1280.avif'
-import clown640Webp from '../../assets/clown-640.webp'
-import clown1280Webp from '../../assets/clown-1280.webp'
 import bazilCosmicMask from '../../assets/bazil-cosmic-mask-768.webp'
+import { EXPERIENCE_TRANSITION_PHASES } from '../../context/experienceMode'
+import { clownHeroSources } from '../../utils/preloadClownExperience'
+import { ArcaneTitle } from '../ArcaneTitle'
 import {
   BodyCopy,
   Container,
@@ -67,13 +66,14 @@ const constellationPoints = [
   [366, 218, 2],
 ]
 
-export function HeroSection({ content, isClownMode }) {
+export function HeroSection({ content, isClownMode, transitionPhase }) {
   const [logoMotion, setLogoMotion] = useState({ x: 0, y: 0, active: false })
   const [logoScrollBand, setLogoScrollBand] = useState(0)
   const heroRootRef = useRef(null)
   const logoMotionFrame = useRef(0)
   const logoScrollFrame = useRef(0)
   const lastLogoScrollBand = useRef(0)
+  const isClownReveal = transitionPhase === EXPERIENCE_TRANSITION_PHASES.REVEALING
 
   const handleLogoMotion = useCallback((event) => {
     if (
@@ -150,7 +150,12 @@ export function HeroSection({ content, isClownMode }) {
   }, [])
 
   return (
-    <HeroSectionRoot ref={heroRootRef} id="home" aria-labelledby="hero-title">
+    <HeroSectionRoot
+      ref={heroRootRef}
+      id="home"
+      aria-labelledby="hero-title"
+      $revealing={isClownReveal}
+    >
       <DeepStarMap
         aria-hidden="true"
         viewBox="0 0 1560 920"
@@ -171,13 +176,18 @@ export function HeroSection({ content, isClownMode }) {
         ))}
       </DeepStarMap>
 
-      <CelestialFrame aria-hidden="true">
-        <FrameCorner $position="top-left" />
-        <FrameCorner $position="top-right" />
-        <FrameCorner $position="bottom-left" />
-        <FrameCorner $position="bottom-right" />
-        <FrameAxis $vertical />
-        <FrameAxis />
+      <CelestialFrame>
+        <FrameCorner aria-hidden="true" $position="top-left" />
+        <FrameCorner aria-hidden="true" $position="top-right" />
+        <FrameCorner aria-hidden="true" $position="bottom-left" />
+        <FrameCorner aria-hidden="true" $position="bottom-right" />
+        <FrameAxis aria-hidden="true" $vertical />
+        <FrameAxis aria-hidden="true" />
+        <HeroBorderBand>
+          <HeroBorderCoordinates aria-hidden="true">☼ ☽ ◇ ✦</HeroBorderCoordinates>
+          <HeroBorderLabel>{content.eyebrow}</HeroBorderLabel>
+          <HeroBorderCoordinates aria-hidden="true">☽ — ✦ — ☉</HeroBorderCoordinates>
+        </HeroBorderBand>
       </CelestialFrame>
 
       <HeroContainer
@@ -193,14 +203,21 @@ export function HeroSection({ content, isClownMode }) {
           ))}
         </Constellation>
 
-        <HeroCopy>
+        <WideHeroTelemetry aria-hidden="true">
+          <TelemetryReadout>φ 1.618033 · golden orbit</TelemetryReadout>
+          <TelemetryAxis />
+          <TelemetryReadout $align="end">137.5° · eleventh gate</TelemetryReadout>
+        </WideHeroTelemetry>
+
+        <HeroCopy $revealing={isClownReveal}>
           <CopyCoordinates aria-hidden="true">
             <CoordinateMark>✦</CoordinateMark>
             <CoordinateLine />
             <CoordinateGlyph>☽ · ○ · ☼</CoordinateGlyph>
           </CopyCoordinates>
-          <HeroEyebrow>{content.eyebrow}</HeroEyebrow>
-          <HeroTitle id="hero-title">{content.title}</HeroTitle>
+          <HeroTitle id="hero-title" aria-label={content.title}>
+            <ArcaneTitle title={content.title} />
+          </HeroTitle>
           <HeroPositioning>{content.positioning}</HeroPositioning>
           <HeroRule $width="9rem" />
           <HeroDescription>{content.description}</HeroDescription>
@@ -244,7 +261,7 @@ export function HeroSection({ content, isClownMode }) {
               />
             </LiquidFilter>
           </LiquidFilterSvg>
-          <ArtworkGlow aria-hidden="true" />
+          <ArtworkGlow aria-hidden="true" $revealing={isClownReveal} />
           <SacredInstrument aria-hidden="true" viewBox="0 0 680 680" focusable="false">
             <GeometryRing cx="340" cy="340" r="318" $tone="metal" $dash="1 15" />
             <GeometryRing cx="340" cy="340" r="298" $tone="orbital" />
@@ -279,52 +296,53 @@ export function HeroSection({ content, isClownMode }) {
             <HaloSatellite $position="west">✦</HaloSatellite>
           </OrbitingHalo>
 
-          {isClownMode ? (
-            <PortraitFrame>
-              <PortraitPicture>
-                <PortraitSource
-                  type="image/avif"
-                  srcSet={`${clown640Avif} 640w, ${clown1280Avif} 1280w`}
-                  sizes="(max-width: 760px) 88vw, 46vw"
-                />
-                <PortraitSource
-                  type="image/webp"
-                  srcSet={`${clown640Webp} 640w, ${clown1280Webp} 1280w`}
-                  sizes="(max-width: 760px) 88vw, 46vw"
-                />
-                <PortraitImage
-                  src={clown1280Webp}
-                  width="1280"
-                  height="1793"
-                  alt="Bazil Bacchanalia Dazil performing in a colorful clown costume with a balloon sculpture."
-                  fetchPriority="high"
-                  decoding="async"
-                />
-              </PortraitPicture>
-              <PortraitCrown aria-hidden="true">✦ ◇ ✦</PortraitCrown>
-            </PortraitFrame>
-          ) : (
-            <TarotLogoFrame aria-hidden="true" $active={logoMotion.active}>
-              <TarotLogoMark
-                src={bazilCosmicMask}
-                width="768"
-                height="768"
-                alt=""
-                fetchPriority="high"
-                decoding="async"
-                data-scroll-band={logoScrollBand}
-                $motionX={logoMotion.x}
-                $motionY={logoMotion.y}
-                $active={logoMotion.active}
+          <PortraitFrame
+            aria-hidden={!isClownMode}
+            $visible={isClownMode}
+            $revealing={isClownReveal}
+          >
+            <PortraitPicture>
+              <PortraitSource
+                type="image/avif"
+                srcSet={`${clownHeroSources.avif.small} 640w, ${clownHeroSources.avif.large} 1280w`}
+                sizes="(max-width: 760px) 88vw, 46vw"
               />
-            </TarotLogoFrame>
-          )}
+              <PortraitSource
+                type="image/webp"
+                srcSet={`${clownHeroSources.webp.small} 640w, ${clownHeroSources.webp.large} 1280w`}
+                sizes="(max-width: 760px) 88vw, 46vw"
+              />
+              <PortraitImage
+                src={clownHeroSources.webp.large}
+                width="1280"
+                height="1793"
+                alt="Bazil Bacchanalia Dazil performing in a colorful clown costume with a balloon sculpture."
+                fetchPriority={isClownMode ? 'high' : 'low'}
+                decoding="async"
+              />
+            </PortraitPicture>
+            <PortraitCrown aria-hidden="true">✦ ◇ ✦</PortraitCrown>
+          </PortraitFrame>
 
-          <ArtworkCoordinates aria-hidden="true">
-            <CoordinateTick />
-            <ArtworkCoordinateMark>☽ — ✦ — ☉</ArtworkCoordinateMark>
-            <CoordinateTick $reverse />
-          </ArtworkCoordinates>
+          <TarotLogoFrame
+            aria-hidden="true"
+            $active={logoMotion.active}
+            $visible={!isClownMode}
+          >
+            <TarotLogoMark
+              src={bazilCosmicMask}
+              width="768"
+              height="768"
+              alt=""
+              fetchPriority="high"
+              decoding="async"
+              data-scroll-band={logoScrollBand}
+              $motionX={logoMotion.x}
+              $motionY={logoMotion.y}
+              $active={logoMotion.active}
+            />
+          </TarotLogoFrame>
+
         </HeroArtwork>
       </HeroContainer>
     </HeroSectionRoot>
@@ -377,6 +395,46 @@ const modeReveal = keyframes`
   }
 `
 
+const heroStageBreach = keyframes`
+  0% {
+    filter: hue-rotate(0deg) saturate(0.82) brightness(0.9);
+    box-shadow: inset 0 0 0 transparent;
+  }
+
+  34% {
+    filter: hue-rotate(72deg) saturate(1.38) brightness(1.1);
+    box-shadow: inset 0 0 8rem ${({ theme }) => theme.colors.effects.goldGlowSoft};
+  }
+
+  68% {
+    filter: hue-rotate(126deg) saturate(1.18) brightness(1.04);
+    box-shadow: inset 0 0 4rem ${({ theme }) => theme.colors.effects.violetGlowSoft};
+  }
+
+  100% {
+    filter: none;
+    box-shadow: inset 0 0 0 transparent;
+  }
+`
+
+const copyBreach = keyframes`
+  0% { opacity: 0.68; transform: translate3d(-0.55rem, 0.7rem, 0) rotate(-0.16deg); }
+  46% { opacity: 1; transform: translate3d(0.18rem, -0.15rem, 0) rotate(0.08deg); }
+  100% { opacity: 1; transform: translate3d(0, 0, 0) rotate(0deg); }
+`
+
+const glowBreach = keyframes`
+  0% { opacity: 0.42; filter: blur(2.2rem) hue-rotate(0deg); transform: scale(0.86); }
+  58% { opacity: 1; filter: blur(1.2rem) hue-rotate(92deg); transform: scale(1.12); }
+  100% { opacity: 0.78; filter: blur(1.8rem) hue-rotate(0deg); transform: scale(1); }
+`
+
+const portraitBreach = keyframes`
+  0% { opacity: 0; filter: saturate(0.7) hue-rotate(-48deg); transform: translate3d(0, 1.2rem, 0) scale(0.94) rotateY(4deg); }
+  38% { opacity: 0.74; filter: saturate(1.42) hue-rotate(28deg); transform: translate3d(-0.2rem, -0.15rem, 0) scale(1.025) rotateY(-1deg); }
+  100% { opacity: 1; filter: none; transform: translate3d(0, 0, 0) scale(1) rotateY(0deg); }
+`
+
 const signalHover = keyframes`
   0%, 100% {
     filter: drop-shadow(0 0 1.2rem ${({ theme }) => theme.colors.effects.violetGlowSoft});
@@ -384,6 +442,34 @@ const signalHover = keyframes`
 
   50% {
     filter: drop-shadow(0 0 2rem ${({ theme }) => theme.colors.effects.acidGlowSoft});
+  }
+`
+
+const plasmaFlicker = keyframes`
+  0%, 100% {
+    color: ${({ theme }) => theme.colors.accent.acid};
+    filter: hue-rotate(0deg) brightness(1);
+    text-shadow:
+      0 0 0.38rem ${({ theme }) => theme.colors.effects.acidGlow},
+      0 0 0.9rem ${({ theme }) => theme.colors.effects.goldGlowSoft};
+  }
+
+  23% {
+    color: ${({ theme }) => theme.colors.accent.metalPale};
+    filter: hue-rotate(-18deg) brightness(1.18);
+  }
+
+  47% {
+    color: ${({ theme }) => theme.colors.accent.candle};
+    filter: hue-rotate(22deg) brightness(1.06);
+    text-shadow:
+      0 0 0.5rem ${({ theme }) => theme.colors.effects.goldGlow},
+      0 0 1.15rem ${({ theme }) => theme.colors.effects.acidGlowSoft};
+  }
+
+  71% {
+    color: ${({ theme }) => theme.colors.accent.signal};
+    filter: hue-rotate(48deg) brightness(1.12);
   }
 `
 
@@ -415,6 +501,13 @@ const HeroSectionRoot = styled(Section)`
     radial-gradient(circle at 11% 18%, ${({ theme }) => theme.colors.effects.starlightSoft} 0%, transparent 12%),
     ${({ theme }) => theme.colors.gradients.hero};
   isolation: isolate;
+
+  ${({ $revealing, theme }) =>
+    $revealing &&
+    css`
+      animation: ${heroStageBreach} ${theme.motion.duration.reveal}
+        ${theme.motion.easing.enter} both;
+    `}
 
   &::before {
     content: '';
@@ -468,6 +561,28 @@ const HeroSectionRoot = styled(Section)`
       radial-gradient(circle at 50% 47%, ${({ theme }) => theme.colors.effects.violetGlow} 0%, transparent 36%),
       radial-gradient(circle at 50% 50%, ${({ theme }) => theme.colors.effects.acidGlowSoft} 0%, transparent 17%),
       ${({ theme }) => theme.colors.gradients.hero};
+  }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    height: max(
+      38rem,
+      calc(
+        100svh - ${({ theme }) => theme.layout.headerOffset} - 0.75rem -
+          ${({ theme }) => theme.layout.safeArea.top}
+      )
+    );
+    min-height: 0;
+    background:
+      repeating-radial-gradient(circle at 72% 39%, transparent 0 3.6rem, ${({ theme }) => theme.colors.border.surface} 3.65rem, transparent 3.72rem),
+      radial-gradient(circle at 72% 40%, ${({ theme }) => theme.colors.effects.violetGlow} 0%, transparent 31%),
+      radial-gradient(circle at 68% 40%, ${({ theme }) => theme.colors.effects.acidGlowSoft} 0%, transparent 14%),
+      radial-gradient(circle at 11% 18%, ${({ theme }) => theme.colors.effects.starlightSoft} 0%, transparent 12%),
+      ${({ theme }) => theme.colors.gradients.hero};
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    filter: none;
   }
 `
 
@@ -631,6 +746,19 @@ const HeroContainer = styled(Container)`
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
     grid-template-columns: minmax(21rem, 0.86fr) minmax(28rem, 1.14fr);
     gap: clamp(2rem, 5vw, 6rem);
+    align-items: center;
+    height: 100%;
+    min-height: 0;
+    padding-block: clamp(
+        ${({ theme }) => theme.spacing['2xl']},
+        4svh,
+        ${({ theme }) => theme.spacing['4xl']}
+      )
+      clamp(
+        ${({ theme }) => theme.spacing['3xl']},
+        5.5svh,
+        ${({ theme }) => theme.spacing['5xl']}
+      );
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
@@ -644,7 +772,7 @@ const HeroContainer = styled(Container)`
 
 const HeroCopy = styled.div`
   position: relative;
-  z-index: ${({ theme }) => theme.zIndex.content};
+  z-index: ${({ theme }) => theme.zIndex.transition};
   isolation: isolate;
   width: 100%;
   min-width: 0;
@@ -656,6 +784,13 @@ const HeroCopy = styled.div`
   border-left: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
     ${({ theme }) => theme.colors.border.violet};
   background: linear-gradient(90deg, ${({ theme }) => theme.colors.background.glassViolet}, transparent 78%);
+
+  ${({ $revealing, theme }) =>
+    $revealing &&
+    css`
+      animation: ${copyBreach} ${theme.motion.duration.reveal}
+        ${theme.motion.easing.enter} both;
+    `}
 
   &::before,
   &::after {
@@ -723,6 +858,26 @@ const HeroCopy = styled.div`
       display: none;
     }
   }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    align-self: center;
+    gap: clamp(
+      ${({ theme }) => theme.spacing.sm},
+      1.45svh,
+      ${({ theme }) => theme.spacing.lg}
+    );
+    max-width: min(46rem, 48vw);
+    padding: clamp(
+      ${({ theme }) => theme.spacing.lg},
+      2.5svh,
+      ${({ theme }) => theme.spacing['3xl']}
+    );
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    transform: none;
+  }
 `
 
 const CopyCoordinates = styled.div`
@@ -737,6 +892,10 @@ const CopyCoordinates = styled.div`
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     width: min(17rem, 68%);
+  }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    font-size: clamp(0.62rem, 1.15svh, ${({ theme }) => theme.typography.fontSize.xs});
   }
 `
 
@@ -755,20 +914,83 @@ const CoordinateGlyph = styled.span`
   white-space: nowrap;
 `
 
-const HeroEyebrow = styled(Eyebrow)`
-  font-family: ${({ theme }) => theme.typography.fontFamily.mono};
-  text-shadow: 0 0 0.9rem ${({ theme }) => theme.colors.effects.acidGlow};
+const HeroBorderBand = styled.div`
+  position: absolute;
+  top: -${({ theme }) => theme.spacing.md};
+  left: 50%;
+  z-index: ${({ theme }) => theme.zIndex.content};
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: min(88%, 42rem);
+  gap: ${({ theme }) => theme.spacing.md};
+  padding-inline: ${({ theme }) => theme.spacing.lg};
+  background: ${({ theme }) => theme.colors.background.canvas};
+  transform: translateX(-50%);
+
+  &::before,
+  &::after {
+    flex: 1;
+    height: ${({ theme }) => theme.borders.width.thin};
+    background: linear-gradient(90deg, transparent, ${({ theme }) => theme.colors.border.filigreeBright}, transparent);
+    content: '';
+  }
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    font-size: ${({ theme }) => theme.typography.fontSize.xs};
+    width: min(92%, 31rem);
+    gap: ${({ theme }) => theme.spacing.sm};
+    padding-inline: ${({ theme }) => theme.spacing.md};
+  }
+`
+
+const HeroBorderLabel = styled(Eyebrow)`
+  flex: 0 0 auto;
+  font-family: ${({ theme }) => theme.typography.fontFamily.mono};
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  letter-spacing: ${({ theme }) => theme.typography.letterSpacing.ceremonial};
+  text-align: center;
+  text-shadow: 0 0 0.9rem ${({ theme }) => theme.colors.effects.acidGlow};
+  animation: ${plasmaFlicker} ${({ theme }) => theme.motion.duration.twinkle} ease-in-out infinite;
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    max-width: 15rem;
+    overflow: hidden;
+    font-size: 0.58rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+const HeroBorderCoordinates = styled.span`
+  flex: 0 0 auto;
+  color: ${({ theme }) => theme.colors.accent.metal};
+  font-family: ${({ theme }) => theme.typography.fontFamily.mono};
+  font-size: ${({ theme }) => theme.typography.fontSize.xs};
+  letter-spacing: ${({ theme }) => theme.typography.letterSpacing.wide};
+  text-shadow: 0 0 0.75rem ${({ theme }) => theme.colors.effects.goldGlowSoft};
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    display: none;
   }
 `
 
 const HeroTitle = styled(DisplayHeading)`
+  --terminal-glyph-overhang: 0.24em;
+
+  position: relative;
+  z-index: ${({ theme }) => theme.zIndex.transition};
+  isolation: isolate;
   min-width: 0;
-  max-width: 10ch;
+  max-width: calc(10ch + var(--terminal-glyph-overhang));
+  padding-inline-end: var(--terminal-glyph-overhang);
+  overflow: visible;
   color: ${({ theme }) => theme.colors.text.primary};
   font-size: clamp(3.6rem, 8vw, 8.5rem);
+  line-height: 0.9;
   text-wrap: balance;
   background: linear-gradient(
     102deg,
@@ -791,13 +1013,18 @@ const HeroTitle = styled(DisplayHeading)`
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     max-width: 100%;
     font-size: clamp(2.15rem, 9.4vw, 3.6rem);
-    line-height: 0.88;
+    line-height: 0.94;
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
-    max-width: 10ch;
+    max-width: calc(10ch + var(--terminal-glyph-overhang));
     font-size: clamp(3.2rem, 7.4vw, 5.6rem);
-    line-height: 0.8;
+    line-height: 0.9;
+  }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    font-size: clamp(3.5rem, min(7.5vw, 12.5svh), 8.25rem);
+    line-height: 0.88;
   }
 
   @media (prefers-reduced-motion: reduce) {
@@ -834,6 +1061,10 @@ const HeroPositioning = styled.p`
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     max-width: 24ch;
     font-size: clamp(1.45rem, 2.8vw, 2.15rem);
+  }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    font-size: clamp(1.45rem, min(3.2vw, 4.7svh), 2.8rem);
   }
 `
 
@@ -892,6 +1123,11 @@ const HeroDescription = styled(BodyCopy).attrs({
     max-width: 32rem;
     font-size: ${({ theme }) => theme.typography.fontSize.body};
     line-height: 1.5;
+  }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    font-size: clamp(0.88rem, 1.75svh, 1.12rem);
+    line-height: 1.6;
   }
 `
 
@@ -1097,6 +1333,13 @@ const HeroArtwork = styled.figure`
     opacity: 0.78;
     mask-image: radial-gradient(circle at center, black 0 62%, transparent 88%);
   }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    align-self: center;
+    height: min(68svh, 48rem);
+    min-height: clamp(28rem, 60svh, 42rem);
+    transform: translateY(clamp(-3.5rem, -4svh, -1.5rem));
+  }
 `
 
 const LiquidFilterSvg = styled.svg`
@@ -1124,6 +1367,13 @@ const ArtworkGlow = styled.div`
   filter: blur(1.8rem);
   pointer-events: none;
 
+  ${({ $revealing, theme }) =>
+    $revealing &&
+    css`
+      animation: ${glowBreach} ${theme.motion.duration.reveal}
+        ${theme.motion.easing.enter} both;
+    `}
+
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     inset: 4%;
   }
@@ -1131,6 +1381,11 @@ const ArtworkGlow = styled.div`
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     inset: 5% -16%;
     opacity: 0.72;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    filter: blur(1.8rem);
   }
 `
 
@@ -1172,6 +1427,12 @@ const SacredInstrument = styled.svg`
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     inset: 50% auto auto 50%;
     width: min(48rem, 92%);
+    translate: -50% -50%;
+  }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    inset: 50% auto auto 50%;
+    width: min(45rem, 50vw, 74svh);
     translate: -50% -50%;
   }
 `
@@ -1261,6 +1522,12 @@ const OrbitingHalo = styled.div`
     width: min(42rem, 82%);
     translate: -50% -50%;
   }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    inset: 50% auto auto 50%;
+    width: min(39rem, 45vw, 68svh);
+    translate: -50% -50%;
+  }
 `
 
 const HaloSatellite = styled.span`
@@ -1290,12 +1557,25 @@ const TarotLogoFrame = styled.div`
   z-index: ${({ theme }) => theme.zIndex.content};
   display: grid;
   place-items: center;
+  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
+  visibility: ${({ $visible }) => ($visible ? 'visible' : 'hidden')};
   pointer-events: none;
-  animation:
-    ${modeReveal} ${({ theme }) => theme.motion.duration.ritual}
-      ${({ theme }) => theme.motion.easing.enter} both,
-    ${signalHover} ${({ theme }) => theme.motion.duration.ambient}
-      ${({ theme }) => theme.motion.easing.ambient} infinite;
+  transition:
+    opacity ${({ theme }) => theme.motion.duration.ritual} ${({ theme }) => theme.motion.easing.enter},
+    visibility 0s linear ${({ $visible, theme }) =>
+      $visible ? '0s' : theme.motion.duration.ritual};
+
+  ${({ $visible, theme }) =>
+    $visible
+      ? css`
+          animation:
+            ${modeReveal} ${theme.motion.duration.ritual} ${theme.motion.easing.enter} both,
+            ${signalHover} ${theme.motion.duration.ambient} ${theme.motion.easing.ambient}
+              infinite;
+        `
+      : css`
+          animation: none;
+        `}
 
   &::before,
   &::after {
@@ -1331,15 +1611,23 @@ const TarotLogoFrame = styled.div`
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     inset: -5% -52%;
-    opacity: 0.94;
+    opacity: ${({ $visible }) => ($visible ? 0.94 : 0)};
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     inset: 8%;
   }
 
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    inset: 50% auto auto 50%;
+    width: min(38rem, 45vw, 70svh);
+    aspect-ratio: 1;
+    translate: -50% -50%;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     animation: none;
+    transition: none;
   }
 
   @media (forced-colors: active) {
@@ -1441,10 +1729,22 @@ const TarotLogoMark = styled.img`
 const PortraitFrame = styled.div`
   position: absolute;
   inset: 0;
-  animation: ${modeReveal} ${({ theme }) => theme.motion.duration.ritual}
-    ${({ theme }) => theme.motion.easing.enter} both;
-  transition: transform ${({ theme }) => theme.motion.duration.ritual}
-    ${({ theme }) => theme.motion.easing.enter};
+  opacity: ${({ $visible }) => ($visible ? 1 : 0)};
+  visibility: ${({ $visible }) => ($visible ? 'visible' : 'hidden')};
+  transform: ${({ $visible }) => ($visible ? 'translate3d(0, 0, 0)' : 'translate3d(0, 1rem, 0) scale(0.97)')};
+  transition:
+    opacity ${({ theme }) => theme.motion.duration.ritual} ${({ theme }) => theme.motion.easing.enter},
+    transform ${({ theme }) => theme.motion.duration.ritual} ${({ theme }) => theme.motion.easing.enter},
+    visibility 0s linear ${({ $visible, theme }) =>
+      $visible ? '0s' : theme.motion.duration.ritual};
+
+  ${({ $visible, $revealing, theme }) =>
+    $visible &&
+    $revealing &&
+    css`
+      animation: ${portraitBreach} ${theme.motion.duration.reveal}
+        ${theme.motion.easing.enter} both;
+    `}
 
   &::before {
     content: '';
@@ -1473,7 +1773,7 @@ const PortraitFrame = styled.div`
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
     inset: 2% 10%;
-    opacity: 0.72;
+    opacity: ${({ $visible }) => ($visible ? 0.72 : 0)};
   }
 `
 
@@ -1521,40 +1821,6 @@ const PortraitCrown = styled.div`
   transform: translateX(-50%);
 `
 
-const ArtworkCoordinates = styled.div`
-  position: absolute;
-  right: 4%;
-  bottom: 3%;
-  left: 4%;
-  display: flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
-  color: ${({ theme }) => theme.colors.accent.metal};
-  font-family: ${({ theme }) => theme.typography.fontFamily.mono};
-  font-size: ${({ theme }) => theme.typography.fontSize.xs};
-  letter-spacing: ${({ theme }) => theme.typography.letterSpacing.label};
-
-  @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
-    right: 9%;
-    bottom: 1%;
-    left: 9%;
-    opacity: 0.72;
-  }
-`
-
-const CoordinateTick = styled.span`
-  flex: 1;
-  height: ${({ theme }) => theme.borders.width.thin};
-  background: ${({ theme, $reverse }) =>
-    $reverse
-      ? `linear-gradient(270deg, ${theme.colors.accent.signal}, transparent)`
-      : `linear-gradient(90deg, ${theme.colors.accent.metal}, transparent)`};
-`
-
-const ArtworkCoordinateMark = styled.span`
-  white-space: nowrap;
-`
-
 const Constellation = styled.svg`
   position: absolute;
   top: clamp(1.5rem, 5vw, 4rem);
@@ -1578,6 +1844,70 @@ const Constellation = styled.svg`
     width: min(46rem, 72vw);
     opacity: 0.22;
     transform: translate(50%, -50%) rotate(-12deg);
+  }
+`
+
+const WideHeroTelemetry = styled.div`
+  display: none;
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    position: absolute;
+    top: clamp(
+      ${({ theme }) => theme.spacing.lg},
+      2.8svh,
+      ${({ theme }) => theme.spacing['3xl']}
+    );
+    right: max(
+      ${({ theme }) => theme.spacing['4xl']},
+      ${({ theme }) => theme.layout.safeArea.right}
+    );
+    left: 52%;
+    z-index: ${({ theme }) => theme.zIndex.atmosphere};
+    display: grid;
+    grid-template-columns: auto minmax(4rem, 1fr) auto;
+    align-items: center;
+    gap: ${({ theme }) => theme.spacing.md};
+    color: ${({ theme }) => theme.colors.accent.metal};
+    font-family: ${({ theme }) => theme.typography.fontFamily.mono};
+    font-size: clamp(0.56rem, 1svh, ${({ theme }) => theme.typography.fontSize.xs});
+    letter-spacing: ${({ theme }) => theme.typography.letterSpacing.wide};
+    opacity: 0.62;
+    pointer-events: none;
+  }
+`
+
+const TelemetryReadout = styled.span`
+  text-align: ${({ $align }) => ($align === 'end' ? 'right' : 'left')};
+  text-transform: uppercase;
+  white-space: nowrap;
+`
+
+const TelemetryAxis = styled.span`
+  position: relative;
+  height: ${({ theme }) => theme.borders.width.thin};
+  background: ${({ theme }) => theme.colors.gradients.goldLine};
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    width: ${({ theme }) => theme.spacing.sm};
+    aspect-ratio: 1;
+    border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
+      ${({ theme }) => theme.colors.border.signal};
+    background: ${({ theme }) => theme.colors.background.canvas};
+    transform: translateY(-50%) rotate(45deg);
+  }
+
+  &::before {
+    left: 16%;
+  }
+
+  &::after {
+    right: 38.2%;
+    border-color: ${({ theme }) => theme.colors.border.strong};
+    box-shadow: 0 0 0.6rem ${({ theme }) => theme.colors.effects.acidGlowSoft};
   }
 `
 

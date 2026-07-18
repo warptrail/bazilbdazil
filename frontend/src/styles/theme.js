@@ -142,6 +142,7 @@ export const tarotTheme = {
       mono: "'SFMono-Regular', 'Cascadia Code', 'Roboto Mono', Consolas, monospace",
     },
     fontSize: {
+      micro: '0.64rem',
       xs: '0.74rem',
       sm: '0.78rem',
       base: '0.92rem',
@@ -299,6 +300,7 @@ export const tarotTheme = {
     sticky: 3,
     overlay: 4,
     skipLink: 5,
+    transition: 6,
   },
 }
 

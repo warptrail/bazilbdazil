@@ -2,6 +2,10 @@ import aboutPortrait480Avif from '../assets/about-sea-witch-v2-480.avif'
 import aboutPortrait900Avif from '../assets/about-sea-witch-v2-900.avif'
 import aboutPortrait480Webp from '../assets/about-sea-witch-v2-480.webp'
 import aboutPortrait900Webp from '../assets/about-sea-witch-v2-900.webp'
+import clownAboutPortrait480Avif from '../assets/about-clown-oracle-v1-480.avif'
+import clownAboutPortrait900Avif from '../assets/about-clown-oracle-v1-900.avif'
+import clownAboutPortrait480Webp from '../assets/about-clown-oracle-v1-480.webp'
+import clownAboutPortrait900Webp from '../assets/about-clown-oracle-v1-900.webp'
 import galleryReading720Avif from '../assets/img-1-720.avif'
 import galleryReading1440Avif from '../assets/img-1-1440.avif'
 import galleryReading720Webp from '../assets/img-1-720.webp'
@@ -183,6 +187,63 @@ const offerings = {
   },
 }
 
+const tarotOfferings = {
+  ...offerings,
+  emphasis: 'tarot',
+  title: 'Tarot readings, with performance in orbit',
+  intro:
+    'Tarot is the center of this chamber: a reflective conversation with images, symbols, patterns, and the question you bring.',
+  items: [
+    {
+      ...offerings.items[0],
+      presentation: 'primary',
+      pathwayLabel: 'A reading may move through',
+      pathways: [
+        {
+          glyph: '☉',
+          title: 'Image and symbol',
+          description: 'Notice what catches your attention before deciding what it means.',
+        },
+        {
+          glyph: '◇',
+          title: 'Pattern and context',
+          description: 'Place the cards beside the question, surrounding positions, and recurring themes.',
+        },
+        {
+          glyph: '✦',
+          title: 'Reflection and agency',
+          description: 'Carry forward perspective and better questions; the choices remain yours.',
+        },
+      ],
+    },
+    {
+      ...offerings.items[1],
+      label: 'Also in orbit',
+      title: 'Drag performance',
+      statement: 'The theatrical practice remains close by.',
+      paragraphs: [
+        'Cabaret spectacle, ritual glamour, and cosmic clownery surface more fully when the clown protocol is engaged.',
+      ],
+      presentation: 'aside',
+    },
+  ],
+}
+
+const clownOfferings = {
+  ...offerings,
+  emphasis: 'performance',
+  items: [
+    {
+      ...offerings.items[0],
+      presentation: 'supporting',
+    },
+    {
+      ...offerings.items[1],
+      presentation: 'primary',
+    },
+  ],
+}
+
 const approach = {
   eyebrow: parsedAbout.philosophy?.label || 'The philosophy',
   title:
@@ -199,6 +260,7 @@ const approach = {
 
 const readingPerformanceImage = {
   id: 'reading-performance',
+  slot: 'primary',
   src: galleryReading1440Webp,
   avifSrcSet: `${galleryReading720Avif} 720w, ${galleryReading1440Avif} 1440w`,
   webpSrcSet: `${galleryReading720Webp} 720w, ${galleryReading1440Webp} 1440w`,
@@ -212,6 +274,7 @@ const readingPerformanceImage = {
 
 const clownPerformanceImage = {
   id: 'clown-performance',
+  slot: 'tower',
   src: galleryPerformance1280Webp,
   avifSrcSet: `${galleryPerformance640Avif} 640w, ${galleryPerformance1280Avif} 1280w`,
   webpSrcSet: `${galleryPerformance640Webp} 640w, ${galleryPerformance1280Webp} 1280w`,
@@ -222,6 +285,54 @@ const clownPerformanceImage = {
   alt: 'Bazil performs in a colorful clown costume while shaping a long balloon onstage.',
   caption: 'Balloon evidence, presented without comment.',
 }
+
+const galleryPlaceholders = [
+  {
+    id: 'archive-slot-three',
+    slot: 'portal',
+    orientation: 'landscape',
+    placeholder: true,
+    glyph: 'Ⅲ',
+    alt: 'Placeholder for a future performance photograph.',
+    caption: 'Archive slot 03 · image pending',
+  },
+  {
+    id: 'archive-slot-four',
+    slot: 'relic',
+    orientation: 'portrait',
+    placeholder: true,
+    glyph: 'Ⅳ',
+    alt: 'Placeholder for a future performance photograph.',
+    caption: 'Archive slot 04 · image pending',
+  },
+  {
+    id: 'archive-slot-five',
+    slot: 'corridor',
+    orientation: 'landscape',
+    placeholder: true,
+    glyph: 'Ⅴ',
+    alt: 'Placeholder for a future performance photograph.',
+    caption: 'Archive slot 05 · image pending',
+  },
+  {
+    id: 'archive-slot-six',
+    slot: 'altar',
+    orientation: 'landscape',
+    placeholder: true,
+    glyph: 'Ⅵ',
+    alt: 'Placeholder for a future performance photograph.',
+    caption: 'Archive slot 06 · image pending',
+  },
+  {
+    id: 'archive-slot-seven',
+    slot: 'threshold',
+    orientation: 'landscape',
+    placeholder: true,
+    glyph: 'Ⅶ',
+    alt: 'Placeholder for a future performance photograph.',
+    caption: 'Archive slot 07 · image pending',
+  },
+]
 
 const galleryBase = {
   eyebrow: 'Selected scenes',
@@ -242,7 +353,7 @@ const sharedLandingContent = {
   ],
   hero: {
     eyebrow: 'Tarot · ritual · drag performance',
-    title: 'Bazil Bacchanalia Dazil.',
+    title: 'Bazil Bacchanalia Dazil',
     positioning: 'Tarot for the Divine Masculine',
     description:
       'Intuitive readings, ritual, and drag performance to help you navigate the mysteries between worlds.',
@@ -256,7 +367,7 @@ const sharedLandingContent = {
     },
   },
   about,
-  offerings,
+  offerings: tarotOfferings,
   approach,
   booking: {
     label: 'Booking calendar',
@@ -289,12 +400,18 @@ const clownLandingContent = {
     ...about,
     portrait: {
       ...about.portrait,
+      src: clownAboutPortrait900Webp,
+      avifSrcSet: `${clownAboutPortrait480Avif} 480w, ${clownAboutPortrait900Avif} 900w`,
+      webpSrcSet: `${clownAboutPortrait480Webp} 480w, ${clownAboutPortrait900Webp} 900w`,
+      alt: 'An illustrated cosmic clown oracle arranges tarot cards inside a submerged celestial observatory.',
       caption: 'Reader · performer · cosmic nuisance',
     },
   },
+  offerings: clownOfferings,
   gallery: {
     ...galleryBase,
-    images: [readingPerformanceImage, clownPerformanceImage],
+    status: '2 recovered · 5 awaiting material',
+    images: [readingPerformanceImage, clownPerformanceImage, ...galleryPlaceholders],
   },
   footer: {
     signoff: 'See you between worlds. Honk responsibly.',

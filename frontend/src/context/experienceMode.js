@@ -5,6 +5,18 @@ export const EXPERIENCE_MODES = Object.freeze({
   CLOWN: 'clown',
 })
 
+export const EXPERIENCE_TRANSITION_PHASES = Object.freeze({
+  IDLE: 'idle',
+  WARMING: 'warming',
+  REVEALING: 'revealing',
+})
+
+export const EXPERIENCE_TRANSITION_TIMING = Object.freeze({
+  warmup: 1400,
+  reveal: 900,
+  assetTimeout: 4800,
+})
+
 export const EXPERIENCE_MODE_STORAGE_KEY = 'bazil-experience-mode'
 export const ExperienceModeContext = createContext(null)
 

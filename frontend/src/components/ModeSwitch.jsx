@@ -1,24 +1,48 @@
-import styled, { keyframes } from 'styled-components'
+import styled, { css, keyframes } from 'styled-components'
+import {
+  EXPERIENCE_MODES,
+  EXPERIENCE_TRANSITION_PHASES,
+} from '../context/experienceMode'
 import { useExperienceMode } from '../context/useExperienceMode'
 import { focusVisible } from '../styles/primitives'
 
 export function ModeSwitch({ compact = false, cornerMounted = false }) {
-  const { isClownMode, toggleMode } = useExperienceMode()
-  const actionLabel = isClownMode ? 'Return to tarot' : 'Release the clown'
+  const {
+    isClownMode,
+    isTransitioning,
+    toggleMode,
+    transitionPhase,
+    transitionTarget,
+  } = useExperienceMode()
+  const isWarming =
+    transitionTarget === EXPERIENCE_MODES.CLOWN &&
+    transitionPhase === EXPERIENCE_TRANSITION_PHASES.WARMING
+  const actionLabel = isTransitioning
+    ? 'Clown mode is warming up'
+    : isClownMode
+      ? 'Return to tarot'
+      : 'Release the clown'
 
   return (
     <SwitchButton
       type="button"
       aria-label={actionLabel}
       aria-pressed={isClownMode}
+      aria-busy={isTransitioning || undefined}
+      disabled={isTransitioning}
       onClick={toggleMode}
       $active={isClownMode}
       $compact={compact}
       $cornerMounted={cornerMounted}
+      $warming={isWarming}
     >
       <SwitchMechanism aria-hidden="true" $compact={compact}>
-        <SwitchOrbit $active={isClownMode} $cornerMounted={cornerMounted} />
-        <SwitchDot $active={isClownMode} />
+        <SwitchOrbit
+          $active={isClownMode}
+          $cornerMounted={cornerMounted}
+          $warming={isWarming}
+        />
+        <SwitchDot $active={isClownMode} $warming={isWarming} />
       </SwitchMechanism>
     </SwitchButton>
   )
@@ -41,6 +65,18 @@ const circuitFlash = keyframes`
   }
 `
 
+const switchWarmup = keyframes`
+  0% { filter: hue-rotate(0deg) brightness(0.9); transform: scale(0.92); }
+  58% { filter: hue-rotate(36deg) brightness(1.28); transform: scale(1.06); }
+  100% { filter: hue-rotate(96deg) brightness(1.16); transform: scale(1); }
+`
+
+const dotWarning = keyframes`
+  0%, 100% { opacity: 0.52; transform: scale(0.72); }
+  35% { opacity: 1; transform: scale(1.28); }
+  62% { opacity: 0.74; transform: scale(0.9); }
+`
+
 const SwitchButton = styled.button`
   position: relative;
   isolation: isolate;
@@ -59,6 +95,13 @@ const SwitchButton = styled.button`
     transform ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
     box-shadow ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.standard},
     filter ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.standard};
+
+  ${({ $warming, theme }) =>
+    $warming &&
+    css`
+      filter: drop-shadow(0 0 1rem ${theme.colors.effects.goldGlow});
+      animation: ${switchWarmup} 1.4s ${theme.motion.easing.enter} both;
+    `}
 
   &::before {
     content: '';
@@ -113,7 +156,13 @@ const SwitchButton = styled.button`
     transform: translateY(${({ theme }) => theme.layout.activeDepth});
   }
 
+  &:disabled {
+    cursor: progress;
+    opacity: 1;
+  }
+
   @media (prefers-reduced-motion: reduce) {
+    animation: none;
     transition-duration: ${({ theme }) => theme.motion.duration.reduced};
 
     &:hover,
@@ -162,7 +211,8 @@ const SwitchOrbit = styled.span`
   border-radius: ${({ theme }) => theme.radii.orbital};
   animation: ${keyframes`
     to { transform: rotate(1turn); }
-  `} ${({ theme }) => theme.motion.duration.orbit} ${({ theme }) => theme.motion.easing.ambient}
+  `} ${({ theme, $warming }) =>
+      $warming ? theme.motion.duration.glint : theme.motion.duration.orbit} ${({ theme }) => theme.motion.easing.ambient}
     infinite ${({ $active }) => ($active ? 'reverse' : 'normal')};
 
   &::after {
@@ -204,6 +254,17 @@ const SwitchDot = styled.span`
     50% { transform: scale(1.18); }
   `} ${({ theme }) => theme.motion.duration.twinkle} ${({ theme }) => theme.motion.easing.enter}
     infinite;
+
+  ${({ $warming, theme }) =>
+    $warming &&
+    css`
+      background: ${theme.colors.accent.metalPale};
+      box-shadow:
+        0 0 0.8rem ${theme.colors.effects.goldGlow},
+        0 0 1.4rem ${theme.colors.effects.violetGlowSoft};
+      animation: ${dotWarning} ${theme.motion.duration.glint} ${theme.motion.easing.enter}
+        infinite;
+    `}
 
   &::before {
     content: '';

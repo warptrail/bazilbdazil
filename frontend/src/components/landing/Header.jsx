@@ -1,6 +1,8 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import styled, { css, keyframes } from 'styled-components'
+import { EXPERIENCE_TRANSITION_PHASES } from '../../context/experienceMode'
 import { Container, NavLink, PrimaryButton } from '../../styles/primitives'
+import { HeaderOracle } from './HeaderOracle'
 
 const navigationGlyphs = ['☉', '◇', '✦', '⌘']
 const placeholderNavigation = [
@@ -8,8 +10,8 @@ const placeholderNavigation = [
   { label: 'Socials', glyph: '✧', placeholder: true },
   { label: 'Store', glyph: '♢', placeholder: true },
 ]
-const HEADER_COLLAPSE_Y = 120
-const HEADER_EXPAND_Y = 40
+const BOOK_OBJECT_SHAPE =
+  'polygon(0.5rem 0, calc(100% - 0.5rem) 0, 100% 0.5rem, 100% calc(100% - 0.5rem), calc(100% - 0.5rem) 100%, 0.5rem 100%, 0 calc(100% - 0.5rem), 0 0.5rem)'
 
 export function PracticeStrip() {
   return (
@@ -31,7 +33,7 @@ export function PracticeStrip() {
   )
 }
 
-export function Header({ navigation }) {
+export function Header({ navigation, transitionPhase, journeyChapterId = 'home' }) {
   const primaryNavigation = navigation.filter((item) => item.href !== '#book')
   const headerNavigation = [
     ...primaryNavigation.map((item, index) => ({
@@ -40,129 +42,118 @@ export function Header({ navigation }) {
     })),
     ...placeholderNavigation,
   ]
-  const [activeHash, setActiveHash] = useState(() =>
-    typeof window === 'undefined' ? '#home' : window.location.hash || '#home',
-  )
-  const [isScrolled, setIsScrolled] = useState(() =>
-    typeof window === 'undefined' ? false : window.scrollY > HEADER_COLLAPSE_Y,
-  )
-  const [isSummoned, setIsSummoned] = useState(false)
-  const isScrolledRef = useRef(isScrolled)
-  const isCondensed = isScrolled && !isSummoned
+  const activeHash = `#${journeyChapterId}`
+  const [isBrandBursting, setIsBrandBursting] = useState(false)
+  const [isBookPurring, setIsBookPurring] = useState(false)
+  const isCondensed = false
+  const isClownReveal = transitionPhase === EXPERIENCE_TRANSITION_PHASES.REVEALING
 
   useEffect(() => {
-    const updateActiveHash = () => setActiveHash(window.location.hash || '#home')
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    let startTimer = 0
+    let stopTimer = 0
+    let disposed = false
 
-    window.addEventListener('hashchange', updateActiveHash)
-    return () => window.removeEventListener('hashchange', updateActiveHash)
-  }, [])
-
-  useEffect(() => {
-    let animationFrame = 0
-
-    const commitScrollState = () => {
-      animationFrame = 0
-      const scrollY = Math.max(window.scrollY, 0)
-      const nextIsScrolled = isScrolledRef.current
-        ? scrollY > HEADER_EXPAND_Y
-        : scrollY > HEADER_COLLAPSE_Y
-
-      if (nextIsScrolled === isScrolledRef.current) return
-
-      isScrolledRef.current = nextIsScrolled
-      setIsScrolled(nextIsScrolled)
-
-      if (nextIsScrolled) setIsSummoned(false)
+    const clearPurrTimers = () => {
+      window.clearTimeout(startTimer)
+      window.clearTimeout(stopTimer)
     }
 
-    const scheduleScrollState = () => {
-      if (animationFrame) return
-      animationFrame = window.requestAnimationFrame(commitScrollState)
+    const schedulePurr = () => {
+      if (motionQuery.matches || disposed) return
+
+      startTimer = window.setTimeout(
+        () => {
+          if (disposed) return
+          setIsBookPurring(true)
+          stopTimer = window.setTimeout(
+            () => {
+              if (disposed) return
+              setIsBookPurring(false)
+              schedulePurr()
+            },
+            720 + Math.random() * 420,
+          )
+        },
+        2800 + Math.random() * 7600,
+      )
     }
 
-    commitScrollState()
-    window.addEventListener('scroll', scheduleScrollState, { passive: true })
-    window.addEventListener('resize', scheduleScrollState, { passive: true })
+    const updateMotionPreference = () => {
+      clearPurrTimers()
+      setIsBookPurring(false)
+      schedulePurr()
+    }
+
+    motionQuery.addEventListener('change', updateMotionPreference)
+    schedulePurr()
 
     return () => {
-      window.removeEventListener('scroll', scheduleScrollState)
-      window.removeEventListener('resize', scheduleScrollState)
-      if (animationFrame) window.cancelAnimationFrame(animationFrame)
+      disposed = true
+      clearPurrTimers()
+      motionQuery.removeEventListener('change', updateMotionPreference)
     }
   }, [])
 
   return (
     <HeaderFrame>
       <SiteHeader
+        data-site-header
         $condensed={isCondensed}
-        onMouseEnter={() => {
-          if (isScrolled) setIsSummoned(true)
-        }}
-        onMouseLeave={() => setIsSummoned(false)}
-        onFocusCapture={() => setIsSummoned(true)}
-        onBlurCapture={(event) => {
-          if (!event.currentTarget.contains(event.relatedTarget)) setIsSummoned(false)
-        }}
+        $revealing={isClownReveal}
       >
         <HeaderAura aria-hidden="true" />
         <HeaderInner $maxWidth="100%" $condensed={isCondensed}>
-        <BrandLink href="#home" aria-label="Bazil Bacchanalia Dazil home">
-          <BrandMark aria-hidden="true" $condensed={isCondensed}>
-            <BrandOrbit />
-            <BrandOrbit $inner />
-            <BrandCore>✦</BrandCore>
-          </BrandMark>
-          <BrandLockup>
-            <BrandText $condensed={isCondensed}>Bazil Bacchanalia Dazil</BrandText>
-          </BrandLockup>
-        </BrandLink>
+          <HeaderOracle condensed={isCondensed} onBurstChange={setIsBrandBursting} />
 
-        <Navigation aria-label="Primary navigation" $condensed={isCondensed}>
-          {headerNavigation.map((item) => (
-            <NavigationLink
-              as={item.placeholder ? 'button' : undefined}
-              key={item.href || item.label}
-              href={item.href}
-              type={item.placeholder ? 'button' : undefined}
-              disabled={item.placeholder || undefined}
-              aria-label={item.placeholder ? `${item.label} — coming soon` : undefined}
-              $active={activeHash === item.href}
-              $placeholder={item.placeholder}
-              aria-current={activeHash === item.href ? 'location' : undefined}
-            >
-              <NavigationGlyph aria-hidden="true">
-                {item.glyph}
-              </NavigationGlyph>
-              <NavigationLabel>{item.label}</NavigationLabel>
-              {item.placeholder && <ComingSoon aria-hidden="true">Soon</ComingSoon>}
-            </NavigationLink>
-          ))}
-        </Navigation>
-
-        <HeaderActions>
-          <HeaderBookLink
-            href="#book"
-            aria-label="Book a session"
-            $active={activeHash === '#book'}
+          <Navigation
+            aria-label="Primary navigation"
             $condensed={isCondensed}
-            aria-current={activeHash === '#book' ? 'location' : undefined}
+            $brandBursting={isBrandBursting}
           >
-            <BookSpark aria-hidden="true">✦</BookSpark>
-            <HeaderBookLabel>Book</HeaderBookLabel>
-          </HeaderBookLink>
-        </HeaderActions>
+            {headerNavigation.map((item) => (
+              <NavigationLink
+                as={item.placeholder ? 'button' : undefined}
+                key={item.href || item.label}
+                href={item.href}
+                type={item.placeholder ? 'button' : undefined}
+                disabled={item.placeholder || undefined}
+                aria-label={item.placeholder ? `${item.label} — coming soon` : undefined}
+                $active={activeHash === item.href}
+                $placeholder={item.placeholder}
+                aria-current={activeHash === item.href ? 'location' : undefined}
+              >
+                <NavigationGlyph aria-hidden="true">
+                  {item.glyph}
+                </NavigationGlyph>
+                <NavigationLabel>{item.label}</NavigationLabel>
+                {item.placeholder && <ComingSoon aria-hidden="true">Soon</ComingSoon>}
+              </NavigationLink>
+            ))}
+          </Navigation>
 
+          <HeaderActions>
+            <HeaderBookLink
+              href="#book"
+              aria-label="Book a session"
+              $active={activeHash === '#book'}
+              $condensed={isCondensed}
+              $purring={isBookPurring}
+              aria-current={activeHash === '#book' ? 'location' : undefined}
+            >
+              <BookDepth aria-hidden="true" />
+              <BookFace>
+                <BookSpark aria-hidden="true">✦</BookSpark>
+                <HeaderBookLabel>Book</HeaderBookLabel>
+                <BookFacet aria-hidden="true" />
+              </BookFace>
+            </HeaderBookLink>
+          </HeaderActions>
         </HeaderInner>
       </SiteHeader>
     </HeaderFrame>
   )
 }
-
-const slowTurn = keyframes`
-  to {
-    transform: rotate(1turn);
-  }
-`
 
 const starBreath = keyframes`
   0%, 100% {
@@ -197,6 +188,86 @@ const ctaHueDrift = keyframes`
 
   50% {
     background-position: 0 0, 100% 50%;
+  }
+`
+
+const bookPurr = keyframes`
+  0%, 18%, 47%, 72%, 100% {
+    transform: perspective(30rem) rotateX(-4deg) rotateY(-6deg) translate3d(0, 0, 0)
+      scale(1);
+  }
+
+  4% {
+    transform: perspective(30rem) rotateX(-2deg) rotateY(-8deg)
+      translate3d(0.035rem, -0.025rem, 0) scale(1.008);
+  }
+
+  8% {
+    transform: perspective(30rem) rotateX(-6deg) rotateY(-3deg)
+      translate3d(-0.04rem, 0.018rem, 0) scale(0.997);
+  }
+
+  12% {
+    transform: perspective(30rem) rotateX(-3deg) rotateY(-7deg)
+      translate3d(0.022rem, -0.012rem, 0) scale(1.004);
+  }
+
+  52% {
+    transform: perspective(30rem) rotateX(-7deg) rotateY(-1deg)
+      translate3d(-0.03rem, -0.04rem, 0) scale(1.012);
+  }
+
+  57% {
+    transform: perspective(30rem) rotateX(-1deg) rotateY(-9deg)
+      translate3d(0.045rem, 0.02rem, 0) scale(1.002);
+  }
+
+  63% {
+    transform: perspective(30rem) rotateX(-5deg) rotateY(-4deg)
+      translate3d(-0.018rem, -0.01rem, 0) scale(1.007);
+  }
+`
+
+const bookDepthPurr = keyframes`
+  0%, 100% { transform: translate3d(0.32rem, 0.38rem, -0.5rem); }
+  22% { transform: translate3d(0.38rem, 0.34rem, -0.58rem); }
+  46% { transform: translate3d(0.27rem, 0.42rem, -0.44rem); }
+  68% { transform: translate3d(0.35rem, 0.36rem, -0.54rem); }
+`
+
+const bookFacePurr = keyframes`
+  0%, 100% { transform: translateZ(0.5rem) scale(1); }
+  24% { transform: translate3d(0.018rem, -0.012rem, 0.58rem) scale(1.006); }
+  49% { transform: translate3d(-0.022rem, 0.016rem, 0.46rem) scale(0.998); }
+  73% { transform: translate3d(0.012rem, -0.008rem, 0.54rem) scale(1.004); }
+`
+
+const bookSparkPurr = keyframes`
+  0%, 100% { opacity: 0.44; transform: rotate(0deg) scale(0.92); }
+  32% { opacity: 1; transform: rotate(17deg) scale(1.18); }
+  58% { opacity: 0.68; transform: rotate(-9deg) scale(0.98); }
+  82% { opacity: 0.92; transform: rotate(7deg) scale(1.1); }
+`
+
+const headerBreach = keyframes`
+  0% {
+    filter: hue-rotate(0deg) saturate(0.82);
+    transform: translate3d(0, 0, 0) scaleY(0.98);
+  }
+
+  28% {
+    filter: hue-rotate(44deg) saturate(1.34);
+    transform: translate3d(-1px, 1px, 0) scaleY(1.015);
+  }
+
+  62% {
+    filter: hue-rotate(112deg) saturate(1.18);
+    transform: translate3d(1px, 0, 0) scaleY(0.995);
+  }
+
+  100% {
+    filter: none;
+    transform: translate3d(0, 0, 0) scaleY(1);
   }
 `
 
@@ -331,8 +402,7 @@ const HeaderFrame = styled.div`
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
     height: calc(
-      ${({ theme }) => theme.layout.headerOffset} + 1.6rem +
-        ${({ theme }) => theme.borders.width.thin}
+      ${({ theme }) => theme.layout.headerOffset} + ${({ theme }) => theme.borders.width.thin}
     );
   }
 `
@@ -359,6 +429,13 @@ const SiteHeader = styled.header`
   transition:
     box-shadow ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
     background-color ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter};
+
+  ${({ $revealing, theme }) =>
+    $revealing &&
+    css`
+      animation: ${headerBreach} ${theme.motion.duration.reveal}
+        ${theme.motion.easing.enter} both;
+    `}
 
   &::before,
   &::after {
@@ -388,6 +465,11 @@ const SiteHeader = styled.header`
     box-shadow:
       inset 0 1px 0 ${({ theme }) => theme.colors.effects.moonlightSoft},
       0 0.75rem 2.5rem ${({ theme }) => theme.colors.background.canvas};
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    transform: none;
   }
 `
 
@@ -470,15 +552,18 @@ const HeaderInner = styled(Container)`
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
-    grid-template-areas: 'brand nav actions';
-    grid-template-columns: minmax(15rem, auto) minmax(0, 1fr) minmax(7.5rem, auto);
-    gap: clamp(
-      ${({ theme }) => theme.spacing.lg},
-      2vw,
-      ${({ theme }) => theme.spacing['5xl']}
-    );
-    min-height: calc(${({ theme }) => theme.layout.headerOffset} + 1.6rem);
-    padding-block: ${({ theme }) => theme.spacing['2xl']} ${({ theme }) => theme.spacing.xl};
+    grid-template-areas:
+      'brand actions'
+      'nav actions';
+    grid-template-columns: minmax(0, 1fr) minmax(7.5rem, auto);
+    gap: ${({ theme }) => theme.spacing.sm}
+      clamp(
+        ${({ theme }) => theme.spacing.lg},
+        2vw,
+        ${({ theme }) => theme.spacing['5xl']}
+      );
+    min-height: ${({ theme }) => theme.layout.headerOffset};
+    padding-block: ${({ theme }) => theme.spacing.sm};
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
@@ -506,196 +591,6 @@ const HeaderInner = styled(Container)`
   }
 `
 
-const BrandLink = styled.a`
-  grid-area: brand;
-  display: inline-flex;
-  align-items: center;
-  gap: ${({ theme }) => theme.spacing.md};
-  width: fit-content;
-  min-height: ${({ theme }) => theme.layout.controlMinHeight};
-  color: ${({ theme }) => theme.colors.text.primary};
-  transition:
-    color ${({ theme }) => theme.transitions.fast},
-    filter ${({ theme }) => theme.transitions.fast};
-
-  @media (hover: hover) {
-    &:hover {
-      color: ${({ theme }) => theme.colors.accent.acidSoft};
-      filter: drop-shadow(0 0 0.65rem ${({ theme }) => theme.colors.effects.acidGlowSoft});
-    }
-
-    &:hover > span:first-child {
-      transform: rotate(30deg) scale(1.06);
-    }
-  }
-
-  &:focus-visible {
-    outline: ${({ theme }) => theme.borders.width.focus} ${({ theme }) => theme.borders.style}
-      ${({ theme }) => theme.colors.border.focus};
-    outline-offset: ${({ theme }) => theme.layout.focusOffset};
-    box-shadow: ${({ theme }) => theme.shadows.focusRing};
-  }
-
-  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    gap: ${({ theme }) => theme.spacing.sm};
-    min-height: 2.5rem;
-  }
-`
-
-const BrandMark = styled.span`
-  position: relative;
-  display: grid;
-  flex: 0 0 auto;
-  width: 3.25rem;
-  aspect-ratio: 1;
-  place-items: center;
-  border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
-    ${({ theme }) => theme.colors.border.strong};
-  border-radius: ${({ theme }) => theme.radii.orbital};
-  color: ${({ theme }) => theme.colors.accent.acid};
-  background:
-    radial-gradient(circle, ${({ theme }) => theme.colors.effects.acidGlowSoft}, transparent 64%),
-    ${({ theme }) => theme.colors.background.surface};
-  box-shadow:
-    ${({ theme }) => theme.shadows.insetOrbital},
-    0 0 0 0.25rem ${({ theme }) => theme.colors.effects.inkVeil},
-    0 0 0 0.3rem ${({ theme }) => theme.colors.border.filigree},
-    0 0 1.4rem ${({ theme }) => theme.colors.effects.acidGlowSoft};
-  transition: transform ${({ theme }) => theme.transitions.base};
-
-  &::before,
-  &::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    pointer-events: none;
-    transform: translate(-50%, -50%);
-  }
-
-  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    width: ${({ $condensed }) => ($condensed ? '1.85rem' : '2.25rem')};
-    transition:
-      width ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
-      transform ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter};
-  }
-
-  &::before {
-    width: 130%;
-    height: ${({ theme }) => theme.borders.width.thin};
-    background: linear-gradient(90deg, transparent, ${({ theme }) => theme.colors.border.filigreeBright}, transparent);
-  }
-
-  &::after {
-    width: ${({ theme }) => theme.borders.width.thin};
-    height: 130%;
-    background: linear-gradient(180deg, transparent, ${({ theme }) => theme.colors.border.signal}, transparent);
-  }
-
-  @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
-    width: ${({ $condensed }) => ($condensed ? '2.4rem' : '3.25rem')};
-    transition:
-      width ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
-      transform ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter};
-  }
-`
-
-const BrandOrbit = styled.span`
-  position: absolute;
-  inset: ${({ $inner }) => ($inner ? '27%' : '12%')};
-  border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
-    ${({ theme, $inner }) =>
-      $inner ? theme.colors.border.signal : theme.colors.border.violetStrong};
-  border-radius: ${({ theme }) => theme.radii.orbital};
-  transform: ${({ $inner }) => ($inner ? 'rotate(45deg)' : 'none')};
-  animation: ${slowTurn} ${({ theme }) => theme.motion.duration.ambient}
-    ${({ theme }) => theme.motion.easing.ambient} infinite
-    ${({ $inner }) => ($inner ? 'reverse' : 'normal')};
-
-  &::before {
-    content: '';
-    position: absolute;
-    top: -0.16rem;
-    left: 50%;
-    width: 0.26rem;
-    aspect-ratio: 1;
-    border-radius: ${({ theme }) => theme.radii.orbital};
-    background: ${({ theme, $inner }) =>
-      $inner ? theme.colors.accent.signal : theme.colors.accent.metal};
-    box-shadow: 0 0 0.45rem ${({ theme }) => theme.colors.effects.starlight};
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-  }
-`
-
-const BrandCore = styled.span`
-  position: relative;
-  z-index: 1;
-  font-size: ${({ theme }) => theme.typography.fontSize.body};
-  line-height: 1;
-`
-
-const BrandLockup = styled.span`
-  display: grid;
-  gap: ${({ theme }) => theme.spacing.sm};
-  min-width: 0;
-`
-
-const BrandText = styled.span`
-  max-width: 15ch;
-  font-family: ${({ theme }) => theme.typography.fontFamily.serif};
-  font-size: clamp(1.2rem, 4.8vw, 1.72rem);
-  line-height: 0.9;
-  letter-spacing: ${({ theme }) => theme.typography.letterSpacing.brand};
-  text-transform: uppercase;
-  text-shadow: 0 0 1.2rem ${({ theme }) => theme.colors.effects.violetGlowSoft};
-  transition:
-    font-size ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
-    letter-spacing ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter};
-
-  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    max-width: none;
-    font-size: ${({ $condensed }) => ($condensed ? '0.7rem' : '0.78rem')};
-    line-height: 1;
-    letter-spacing: ${({ theme }) => theme.typography.letterSpacing.editorial};
-    white-space: nowrap;
-  }
-
-  @media (max-width: 360px) {
-    max-width: 12ch;
-    font-size: ${({ $condensed }) => ($condensed ? '0.66rem' : '0.72rem')};
-    line-height: 0.92;
-    white-space: normal;
-  }
-
-  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
-    max-width: ${({ $condensed }) => ($condensed ? 'none' : 'none')};
-    font-size: ${({ $condensed }) =>
-      $condensed ? '1.02rem' : 'clamp(1.4rem, 1.8vw, 1.9rem)'};
-    line-height: ${({ $condensed }) => ($condensed ? 1 : 0.9)};
-    letter-spacing: ${({ theme, $condensed }) =>
-      $condensed
-        ? theme.typography.letterSpacing.editorial
-        : theme.typography.letterSpacing.brand};
-    white-space: ${({ $condensed }) => ($condensed ? 'nowrap' : 'normal')};
-  }
-
-  @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: 1199px) {
-    ${({ $condensed, theme }) =>
-      $condensed &&
-      css`
-        max-width: none;
-        font-size: 1.02rem;
-        line-height: 1;
-        letter-spacing: ${theme.typography.letterSpacing.editorial};
-        white-space: nowrap;
-      `}
-  }
-
-`
-
 const HeaderActions = styled.div`
   position: relative;
   grid-area: actions;
@@ -703,6 +598,8 @@ const HeaderActions = styled.div`
   align-items: center;
   justify-content: flex-end;
   gap: ${({ theme }) => theme.spacing.sm};
+  perspective: 30rem;
+  perspective-origin: center;
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     padding-inline-end: ${({ theme }) => theme.spacing.sm};
@@ -742,6 +639,7 @@ const Navigation = styled.nav`
   transform: translateY(0);
   transition:
     max-height ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
+    width ${({ theme }) => theme.motion.duration.ritual} ${({ theme }) => theme.motion.easing.enter},
     padding ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
     margin ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
     opacity ${({ theme }) => theme.motion.duration.base} ${({ theme }) => theme.motion.easing.standard},
@@ -774,7 +672,8 @@ const Navigation = styled.nav`
     position: relative;
     justify-content: stretch;
     gap: 0;
-    width: auto;
+    width: 100%;
+    max-width: 64rem;
     margin: 0;
     padding: clamp(
       ${({ theme }) => theme.spacing.xs},
@@ -782,31 +681,51 @@ const Navigation = styled.nav`
       ${({ theme }) => theme.spacing.sm}
     );
     overflow: visible;
-    border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
-      ${({ theme }) => theme.colors.border.surfaceRaised};
-    background: linear-gradient(180deg, ${({ theme }) => theme.colors.effects.moonlightSoft}, transparent 52%);
-    box-shadow:
-      inset 0 0 0 ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.colors.effects.inkVeil},
-      ${({ theme }) => theme.shadows.filigree};
+    border: 0;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      ${({ theme }) => theme.colors.effects.moonlightSoft} 10%,
+      ${({ theme }) => theme.colors.background.glassViolet} 50%,
+      ${({ theme }) => theme.colors.effects.moonlightSoft} 90%,
+      transparent
+    );
+    box-shadow: none;
     max-height: 5rem;
 
     &::before,
     &::after {
-      content: '✦';
+      content: '';
       position: absolute;
-      top: 50%;
-      color: ${({ theme }) => theme.colors.accent.metal};
-      font-size: 0.52rem;
-      transform: translateY(-50%);
+      right: clamp(${({ theme }) => theme.spacing.lg}, 5vw, ${({ theme }) => theme.spacing['5xl']});
+      left: clamp(${({ theme }) => theme.spacing.lg}, 5vw, ${({ theme }) => theme.spacing['5xl']});
+      height: ${({ theme }) => theme.borders.width.thin};
+      background: linear-gradient(
+        90deg,
+        transparent,
+        ${({ theme }) => theme.colors.border.filigree},
+        ${({ theme }) => theme.colors.border.violetStrong},
+        transparent
+      );
+      pointer-events: none;
     }
 
     &::before {
-      left: -0.28rem;
+      top: 0;
     }
 
     &::after {
-      right: -0.28rem;
+      bottom: 0;
     }
+
+    ${({ $brandBursting, theme }) =>
+      $brandBursting &&
+      css`
+        width: calc(100% - clamp(15rem, 31vw, 20rem));
+        margin-inline-start: clamp(15rem, 31vw, 20rem);
+        opacity: 0.72;
+        transform: translate3d(${theme.spacing.md}, ${theme.spacing.xs}, 0) scale(0.985);
+      `}
 
     @media (max-width: ${({ theme }) => theme.layout.breakpoints.wideMax}) {
       ${({ $condensed }) =>
@@ -826,12 +745,25 @@ const Navigation = styled.nav`
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
     transition:
+      width ${({ theme }) => theme.motion.duration.ritual} ${({ theme }) => theme.motion.easing.enter},
+      margin ${({ theme }) => theme.motion.duration.ritual} ${({ theme }) => theme.motion.easing.enter},
       opacity ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
       transform ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter};
+
+    ${({ $brandBursting }) =>
+      $brandBursting &&
+      css`
+        width: calc(100% - clamp(19rem, 24vw, 24rem));
+        margin-inline-start: clamp(19rem, 24vw, 24rem);
+      `}
 
     ${({ $condensed }) =>
       $condensed &&
       css`
+        max-height: 0;
+        padding: 0;
+        overflow: hidden;
+        border-width: 0;
         opacity: 0;
         pointer-events: none;
         transform: translateY(-0.2rem) scale(0.985);
@@ -1015,6 +947,10 @@ const NavigationLink = styled(NavLink)`
     }
   }
 
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    min-height: 2.25rem;
+  }
+
   @container (max-width: 42rem) {
     gap: ${({ theme }) => theme.spacing.xs};
     padding-inline: ${({ theme }) => theme.spacing.xs};
@@ -1084,17 +1020,43 @@ const ComingSoon = styled.span`
   }
 `
 
-const HeaderBookLink = styled(PrimaryButton)`
-  position: relative;
-  min-width: 5.6rem;
-  min-height: ${({ theme }) => theme.layout.controlMinHeight};
+const BookDepth = styled.span`
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  clip-path: ${BOOK_OBJECT_SHAPE};
+  background: linear-gradient(
+    145deg,
+    ${({ theme }) => theme.colors.background.surfacePressed},
+    ${({ theme }) => theme.colors.accent.ultravioletStrong} 58%,
+    ${({ theme }) => theme.colors.accent.rose}
+  );
+  box-shadow:
+    0 0.8rem 1rem ${({ theme }) => theme.colors.effects.inkVeil},
+    0 1rem 2rem ${({ theme }) => theme.colors.background.canvas};
+  pointer-events: none;
+  transform: translate3d(0.32rem, 0.38rem, -0.5rem);
+  transition: transform ${({ theme }) => theme.motion.duration.luxury}
+    ${({ theme }) => theme.motion.easing.magnetic};
+`
+
+const BookFace = styled.span`
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: ${({ theme }) => theme.spacing.sm};
   overflow: hidden;
   padding-inline: ${({ theme }) => theme.spacing.md};
-  clip-path: polygon(0.45rem 0, calc(100% - 0.45rem) 0, 100% 0.45rem, 100% calc(100% - 0.45rem), calc(100% - 0.45rem) 100%, 0.45rem 100%, 0 calc(100% - 0.45rem), 0 0.45rem);
-  border: 0;
-  color: ${({ theme }) => theme.colors.text.onAccent};
+  clip-path: ${BOOK_OBJECT_SHAPE};
   background:
-    radial-gradient(circle at 22% 0%, ${({ theme }) => theme.colors.effects.moonlight}, transparent 34%),
+    radial-gradient(
+      circle at 22% 0%,
+      ${({ theme }) => theme.colors.effects.moonlight},
+      transparent 34%
+    ),
     linear-gradient(
       110deg,
       ${({ theme }) => theme.colors.accent.acidSurface},
@@ -1104,91 +1066,67 @@ const HeaderBookLink = styled(PrimaryButton)`
       ${({ theme }) => theme.colors.accent.acidSurface}
     );
   background-size: 100% 100%, 280% 100%;
-  filter: ${({ $active }) => ($active ? 'brightness(1.08)' : 'none')};
   box-shadow:
-    0 0.8rem 1.4rem ${({ theme }) => theme.colors.effects.inkVeil},
-    0 1.1rem 2.4rem ${({ theme }) => theme.colors.background.canvas},
-    0 0 1.6rem ${({ theme, $active }) =>
-      $active ? theme.colors.effects.acidGlow : theme.colors.effects.violetGlowSoft};
+    inset 0 1px 0 ${({ theme }) => theme.colors.effects.glassHighlight},
+    inset 0 -0.28rem 0.62rem ${({ theme }) => theme.colors.effects.glassShade},
+    inset 0 0 0 ${({ theme }) => theme.spacing.xs}
+      ${({ theme }) => theme.colors.effects.moonlightSoft},
+    0 0 1.7rem ${({ theme }) => theme.colors.effects.violetGlowSoft};
+  backface-visibility: hidden;
+  transform: translateZ(0.5rem);
+  transition:
+    transform ${({ theme }) => theme.motion.duration.luxury}
+      ${({ theme }) => theme.motion.easing.magnetic},
+    box-shadow ${({ theme }) => theme.motion.duration.luxury}
+      ${({ theme }) => theme.motion.easing.standard};
   animation: ${ctaHueDrift} ${({ theme }) => theme.motion.duration.ambient}
     ${({ theme }) => theme.motion.easing.ambient} infinite;
-  transition:
-    min-height ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
-    min-width ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
-    padding ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
-    transform ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
-    box-shadow ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.standard};
 
-  &::before {
+  &::before,
+  &::after {
     content: '';
     position: absolute;
-    inset: -100% 55% -100% -40%;
-    background: linear-gradient(90deg, transparent, ${({ theme }) => theme.colors.effects.moonlight}, transparent);
-    transform: translateX(-100%) rotate(18deg);
-    transition: transform ${({ theme }) => theme.motion.duration.ritual}
-      ${({ theme }) => theme.motion.easing.enter};
+    right: 0.5rem;
+    left: 0.5rem;
+    height: ${({ theme }) => theme.borders.width.thin};
+    pointer-events: none;
   }
 
-  @media (hover: hover) {
-    &:hover {
-      border: 0;
-      color: ${({ theme }) => theme.colors.text.onAccent};
-      background:
-        radial-gradient(circle at 22% 0%, ${({ theme }) => theme.colors.effects.moonlight}, transparent 34%),
-        linear-gradient(
-          110deg,
-          ${({ theme }) => theme.colors.accent.acidSurface},
-          ${({ theme }) => theme.colors.accent.acid},
-          ${({ theme }) => theme.colors.accent.signal},
-          ${({ theme }) => theme.colors.accent.rose},
-          ${({ theme }) => theme.colors.accent.acidSurface}
-        );
-      background-size: 100% 100%, 280% 100%;
-      box-shadow:
-        0 0.9rem 1.5rem ${({ theme }) => theme.colors.effects.inkVeil},
-        0 1.2rem 2.6rem ${({ theme }) => theme.colors.background.canvas},
-        0 0 2rem ${({ theme }) => theme.colors.effects.acidGlow};
-    }
-
-    &:hover::before {
-      transform: translateX(260%) rotate(18deg);
-    }
+  &::before {
+    top: 0.16rem;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      ${({ theme }) => theme.colors.effects.glassHighlight},
+      transparent
+    );
   }
 
-  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    min-width: ${({ $condensed }) => ($condensed ? '4.5rem' : '5rem')};
-    min-height: ${({ $condensed }) => ($condensed ? '2.35rem' : '2.55rem')};
-    padding-inline: ${({ theme }) => theme.spacing.md};
+  &::after {
+    bottom: 0.18rem;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      ${({ theme }) => theme.colors.effects.glassShade},
+      transparent
+    );
   }
+`
 
-  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
-    min-width: ${({ $condensed }) => ($condensed ? '5.8rem' : '7.5rem')};
-    min-height: ${({ theme, $condensed }) =>
-      $condensed ? theme.layout.controlMinHeight : theme.layout.buttonMinHeight};
-    padding-inline: ${({ theme, $condensed }) =>
-      $condensed ? theme.spacing.lg : theme.spacing['2xl']};
-
-  }
-
-  @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: 1199px) {
-    ${({ $condensed, theme }) =>
-      $condensed &&
-      css`
-        min-width: 5.8rem;
-        min-height: ${theme.layout.controlMinHeight};
-        padding-inline: ${theme.spacing.lg};
-
-      `}
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    animation: none;
-    background-position: 0 0, 0 50%;
-
-    &::before {
-      display: none;
-    }
-  }
+const BookFacet = styled.span`
+  position: absolute;
+  inset: -110% 62% -110% -42%;
+  z-index: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    ${({ theme }) => theme.colors.effects.moonlight},
+    transparent
+  );
+  pointer-events: none;
+  transform: translateX(-110%) rotate(18deg);
+  transition: transform ${({ theme }) => theme.motion.duration.ritual}
+    ${({ theme }) => theme.motion.easing.enter};
 `
 
 const BookSpark = styled.span`
@@ -1200,6 +1138,164 @@ const BookSpark = styled.span`
 
   @media (prefers-reduced-motion: reduce) {
     animation: none;
+  }
+`
+
+const HeaderBookLink = styled(PrimaryButton)`
+  position: relative;
+  min-width: 5.6rem;
+  min-height: ${({ theme }) => theme.layout.controlMinHeight};
+  overflow: visible;
+  padding: 0;
+  clip-path: none;
+  border: 0;
+  color: ${({ theme }) => theme.colors.text.onAccent};
+  background: none;
+  box-shadow: none;
+  transform: perspective(30rem) rotateX(-4deg) rotateY(-6deg) translateZ(0);
+  transform-style: preserve-3d;
+  transition:
+    min-height ${({ theme }) => theme.motion.duration.luxury}
+      ${({ theme }) => theme.motion.easing.enter},
+    min-width ${({ theme }) => theme.motion.duration.luxury}
+      ${({ theme }) => theme.motion.easing.enter},
+    transform ${({ theme }) => theme.motion.duration.luxury}
+      ${({ theme }) => theme.motion.easing.magnetic};
+
+  &::after {
+    display: none;
+  }
+
+  ${({ $purring, theme }) =>
+    $purring &&
+    css`
+      animation: ${bookPurr} 980ms ${theme.motion.easing.ambient} both;
+
+      ${BookDepth} {
+        animation: ${bookDepthPurr} 780ms ${theme.motion.easing.ambient} both;
+      }
+
+      ${BookFace} {
+        animation:
+          ${ctaHueDrift} ${theme.motion.duration.ambient} ${theme.motion.easing.ambient}
+            infinite,
+          ${bookFacePurr} 860ms ${theme.motion.easing.ambient} both;
+      }
+
+      ${BookSpark} {
+        animation:
+          ${starBreath} ${theme.motion.duration.ambient} ${theme.motion.easing.ambient}
+            infinite alternate,
+          ${bookSparkPurr} 720ms ${theme.motion.easing.ambient} both;
+      }
+    `}
+
+  ${({ $active, theme }) =>
+    $active &&
+    css`
+      ${BookFace} {
+        filter: brightness(1.08);
+        box-shadow:
+          inset 0 1px 0 ${theme.colors.effects.glassHighlight},
+          inset 0 -0.28rem 0.62rem ${theme.colors.effects.glassShade},
+          0 0 2rem ${theme.colors.effects.acidGlow};
+      }
+    `}
+
+  @media (hover: hover) {
+    &:hover {
+      animation: none;
+      border: 0;
+      color: ${({ theme }) => theme.colors.text.onAccent};
+      background: none;
+      box-shadow: none;
+      transform: perspective(30rem) rotateX(-9deg) rotateY(8deg)
+        translate3d(0, ${({ theme }) => theme.layout.hoverLift}, 0) scale(1.025);
+    }
+
+    &:hover ${BookFace} {
+      box-shadow:
+        inset 0 1px 0 ${({ theme }) => theme.colors.effects.glassHighlight},
+        inset 0 -0.28rem 0.62rem ${({ theme }) => theme.colors.effects.glassShade},
+        0 0 2.1rem ${({ theme }) => theme.colors.effects.acidGlow};
+    }
+
+    &:hover ${BookFacet} {
+      transform: translateX(270%) rotate(18deg);
+    }
+  }
+
+  &:active {
+    transform: perspective(30rem) rotateX(5deg) rotateY(-2deg)
+      translate3d(0.16rem, 0.24rem, 0) scale(0.975);
+  }
+
+  &:active ${BookDepth} {
+    transform: translate3d(0.1rem, 0.12rem, -0.18rem);
+  }
+
+  &:active ${BookFace} {
+    transform: translateZ(0.12rem);
+  }
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    min-width: ${({ $condensed }) => ($condensed ? '4.5rem' : '5rem')};
+    min-height: ${({ $condensed }) => ($condensed ? '2.35rem' : '2.55rem')};
+  }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+    min-width: ${({ $condensed }) => ($condensed ? '5.8rem' : '7.5rem')};
+    min-height: ${({ theme, $condensed }) =>
+      $condensed ? theme.layout.controlMinHeight : theme.layout.buttonMinHeight};
+  }
+
+  @media (min-width: ${({ theme }) => theme.layout.breakpoints.desktop}) and (max-width: 1199px) {
+    ${({ $condensed, theme }) =>
+      $condensed &&
+      css`
+        min-width: 5.8rem;
+        min-height: ${theme.layout.controlMinHeight};
+      `}
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    transform: none;
+    transition-duration: ${({ theme }) => theme.motion.duration.reduced};
+
+    &:hover,
+    &:active {
+      transform: none;
+    }
+
+    ${BookDepth},
+    ${BookFace},
+    ${BookSpark} {
+      animation: none;
+    }
+
+    ${BookFace} {
+      transform: none;
+    }
+
+    ${BookFacet} {
+      display: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    ${BookDepth} {
+      display: none;
+    }
+
+    ${BookFace} {
+      clip-path: none;
+      border: ${({ theme }) => theme.borders.width.thin}
+        ${({ theme }) => theme.borders.style} ButtonText;
+      background: ButtonFace;
+      box-shadow: none;
+      transform: none;
+    }
   }
 `
 

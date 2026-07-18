@@ -1,5 +1,11 @@
 import { useEffect, useRef, useState } from 'react'
 import styled, { css, keyframes } from 'styled-components'
+import {
+  EXPERIENCE_MODES,
+  EXPERIENCE_TRANSITION_PHASES,
+  EXPERIENCE_TRANSITION_TIMING,
+} from '../../context/experienceMode'
+import { useExperienceMode } from '../../context/useExperienceMode'
 import { ModeSwitch } from '../ModeSwitch'
 
 const STAR_FIELD = Array.from({ length: 46 }, (_, index) => ({
@@ -21,7 +27,17 @@ const SEED_CIRCLES = [
   [200, 200],
 ]
 
-export function ObservatoryField({ showModeControl = false }) {
+export function ObservatoryField({
+  showModeControl = false,
+  activeScene = 0,
+  sceneCount = 6,
+  dialDirection = 1,
+  dialEngaged = false,
+  onSceneRequest,
+  journeyState,
+  chapterStops = [],
+}) {
+  const { transitionPhase, transitionTarget } = useExperienceMode()
   const [pointer, setPointer] = useState({ x: 50, y: 42 })
   const [scrollProgress, setScrollProgress] = useState(0)
   const pointerRef = useRef(pointer)
@@ -29,6 +45,19 @@ export function ObservatoryField({ showModeControl = false }) {
   const [motionEnabled, setMotionEnabled] = useState(
     () => typeof window !== 'undefined' && !window.matchMedia('(prefers-reduced-motion: reduce)').matches,
   )
+  const effectiveScrollProgress = journeyState?.globalProgress ?? scrollProgress
+  const displayedStops = chapterStops.length > 0
+    ? chapterStops
+    : Array.from({ length: sceneCount }, (_, index) => ({
+        id: String(index),
+        index,
+        position: index / Math.max(sceneCount - 1, 1),
+      }))
+  const isClownTransition = transitionTarget === EXPERIENCE_MODES.CLOWN
+  const isWarming =
+    isClownTransition && transitionPhase === EXPERIENCE_TRANSITION_PHASES.WARMING
+  const isRevealing =
+    isClownTransition && transitionPhase === EXPERIENCE_TRANSITION_PHASES.REVEALING
 
   useEffect(() => {
     const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -43,6 +72,7 @@ export function ObservatoryField({ showModeControl = false }) {
   }, [])
 
   useEffect(() => {
+    if (journeyState) return undefined
     if (!motionEnabled) return undefined
 
     const finePointer = window.matchMedia('(pointer: fine)').matches
@@ -97,54 +127,51 @@ export function ObservatoryField({ showModeControl = false }) {
       window.removeEventListener('resize', handleScroll)
       if (animationFrame) window.cancelAnimationFrame(animationFrame)
     }
-  }, [motionEnabled])
+  }, [journeyState, motionEnabled])
 
   return (
     <>
-      <FieldRoot aria-hidden="true" $motionEnabled={motionEnabled}>
-        <EtchedGrid />
-        <SpectralFog $x={pointer.x} $y={pointer.y} />
+      <FieldRoot
+        aria-hidden="true"
+        $motionEnabled={motionEnabled}
+        $revealing={isRevealing}
+      >
+        <FieldVisuals $scene={activeScene}>
+          <EtchedGrid />
+          <SpectralFog $x={pointer.x} $y={pointer.y} $scene={activeScene} />
 
-        <StarPlane>
-          {STAR_FIELD.map((star) => (
-            <FieldStar
-              key={star.id}
-              $x={star.x}
-              $y={star.y}
-              $size={star.size}
-              $delay={star.delay}
-              $tone={star.tone}
-            />
-          ))}
-        </StarPlane>
+          <StarPlane>
+            {STAR_FIELD.map((star) => (
+              <FieldStar
+                key={star.id}
+                $x={star.x}
+                $y={star.y}
+                $size={star.size}
+                $delay={star.delay}
+                $tone={star.tone}
+              />
+            ))}
+          </StarPlane>
 
-        <GeometryAnchor $x={pointer.x} $y={pointer.y}>
-          <GeometrySpinner>
-            <SacredGeometry viewBox="0 0 400 400" focusable="false">
-              <GeometryOrbit cx="200" cy="200" r="184" />
-              <GeometryOrbit cx="200" cy="200" r="146" />
-              <GeometryPolygon points="200,20 356,110 356,290 200,380 44,290 44,110" />
-              <GeometryPolygon points="200,54 326,127 326,273 200,346 74,273 74,127" />
-              {SEED_CIRCLES.map(([cx, cy]) => (
-                <SeedCircle key={`${cx}-${cy}`} cx={cx} cy={cy} r="74" />
-              ))}
-              <GeometryCross d="M200 16V384M16 200H384M70 70L330 330M330 70L70 330" />
-              <CoreStar d="M200 144 216 184 256 200 216 216 200 256 184 216 144 200 184 184Z" />
-            </SacredGeometry>
-          </GeometrySpinner>
-        </GeometryAnchor>
+          <GeometryAnchor $x={pointer.x} $y={pointer.y} $scene={activeScene}>
+            <GeometrySpinner>
+              <SacredGeometry viewBox="0 0 400 400" focusable="false">
+                <GeometryOrbit cx="200" cy="200" r="184" />
+                <GeometryOrbit cx="200" cy="200" r="146" />
+                <GeometryPolygon points="200,20 356,110 356,290 200,380 44,290 44,110" />
+                <GeometryPolygon points="200,54 326,127 326,273 200,346 74,273 74,127" />
+                {SEED_CIRCLES.map(([cx, cy]) => (
+                  <SeedCircle key={`${cx}-${cy}`} cx={cx} cy={cy} r="74" />
+                ))}
+                <GeometryCross d="M200 16V384M16 200H384M70 70L330 330M330 70L70 330" />
+                <CoreStar d="M200 144 216 184 256 200 216 216 200 256 184 216 144 200 184 184Z" />
+              </SacredGeometry>
+            </GeometrySpinner>
+          </GeometryAnchor>
 
-        <Comet $position="upper" />
-        <Comet $position="lower" />
-
-        <ProgressRail>
-          <RailGlyph>✦</RailGlyph>
-          <RailTrack>
-            <RailFill $progress={scrollProgress} />
-            <RailOrb $progress={scrollProgress} />
-          </RailTrack>
-          <RailGlyph>☾</RailGlyph>
-        </ProgressRail>
+          <Comet $position="upper" />
+          <Comet $position="lower" />
+        </FieldVisuals>
 
         <PhaseRail>
           <Phase>●</Phase>
@@ -155,7 +182,48 @@ export function ObservatoryField({ showModeControl = false }) {
         </PhaseRail>
       </FieldRoot>
 
-      <ObservatoryFrame aria-hidden="true">
+      <ProgressRail aria-label="Section orbit navigator" $engaged={dialEngaged}>
+        <RailTitle>Orbit</RailTitle>
+        <RailGlyph>✦</RailGlyph>
+        <RailTrack>
+          <RailFill $progress={effectiveScrollProgress} $scene={activeScene} $controlled={Boolean(journeyState)} />
+          <RailDial
+            aria-hidden="true"
+            $direction={dialDirection}
+            $engaged={dialEngaged}
+            $progress={effectiveScrollProgress}
+            $controlled={Boolean(journeyState)}
+          />
+          <RailOrb
+            aria-hidden="true"
+            $progress={effectiveScrollProgress}
+            $engaged={dialEngaged}
+            $controlled={Boolean(journeyState)}
+          />
+          {displayedStops.map((stop, index) => (
+            <RailStop
+              key={stop.id}
+              type="button"
+              aria-label={`Travel to orbit ${index + 1}`}
+              aria-current={index === activeScene ? 'step' : undefined}
+              $active={index === activeScene}
+              $passed={index < activeScene}
+              $position={stop.position}
+              onClick={() => onSceneRequest?.(stop.index)}
+            />
+          ))}
+        </RailTrack>
+        <RailGlyph>☾</RailGlyph>
+        <RailReadout>
+          {String(activeScene + 1).padStart(2, '0')} / {String(sceneCount).padStart(2, '0')}
+        </RailReadout>
+      </ProgressRail>
+
+      <ObservatoryFrame
+        aria-hidden="true"
+        $warming={isWarming}
+        $revealing={isRevealing}
+      >
         <FrameEdge $edge="top" />
         <FrameEdge $edge="right" />
         <FrameCorner $corner="northWest">✦</FrameCorner>
@@ -209,6 +277,89 @@ const currentRun = keyframes`
   76%, 100% { background-position: -100% 50%; opacity: 0.3; }
 `
 
+const frameAwakening = keyframes`
+  0% {
+    filter: hue-rotate(0deg) brightness(0.86);
+    transform: scale(0.992);
+  }
+
+  64% {
+    filter: hue-rotate(38deg) brightness(1.24);
+    transform: scale(1.004);
+  }
+
+  100% {
+    filter: hue-rotate(104deg) brightness(1.12);
+    transform: scale(1);
+  }
+`
+
+const fieldBreach = keyframes`
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  18% { transform: translate3d(-1px, 1px, 0) scale(1.002); }
+  42% { transform: translate3d(1px, -1px, 0) scale(1.006); }
+  68% { transform: translate3d(-1px, 0, 0) scale(1.003); }
+`
+
+const fieldVoyage = keyframes`
+  0% {
+    filter: hue-rotate(0deg) saturate(0.94) brightness(0.92);
+    transform: translate3d(0, -3.5vh, 0) scale(1.025);
+  }
+
+  48% {
+    filter: hue-rotate(34deg) saturate(1.08) brightness(1);
+    transform: translate3d(0, 0, 0) scale(1.055);
+  }
+
+  100% {
+    filter: hue-rotate(72deg) saturate(1.16) brightness(1.04);
+    transform: translate3d(0, 4vh, 0) scale(1.085);
+  }
+`
+
+const gridVoyage = keyframes`
+  from { transform: translate3d(0, -2.5vh, 0) scale(1.02); }
+  to { transform: translate3d(0, 3vh, 0) scale(1.09); }
+`
+
+const starVoyage = keyframes`
+  from { transform: translate3d(0, 2vh, 0) scale(1.08); }
+  to { transform: translate3d(0, -4vh, 0) scale(1.16); }
+`
+
+const geometryVoyage = keyframes`
+  from {
+    translate: 0 -3vh;
+    scale: 0.92;
+  }
+
+  to {
+    translate: 0 4vh;
+    scale: 1.12;
+  }
+`
+
+const dialTurnForward = keyframes`
+  from { transform: translate(-50%, -50%) rotate(0deg) scale(0.86); }
+  to { transform: translate(-50%, -50%) rotate(180deg) scale(1.08); }
+`
+
+const dialTurnBackward = keyframes`
+  from { transform: translate(-50%, -50%) rotate(0deg) scale(0.86); }
+  to { transform: translate(-50%, -50%) rotate(-180deg) scale(1.08); }
+`
+
+const crystalCharge = keyframes`
+  0%, 100% {
+    filter: brightness(1) saturate(1);
+  }
+
+  48% {
+    filter: brightness(1.45) saturate(1.28);
+  }
+`
+
 const sparkRunHorizontal = keyframes`
   0%, 58% { opacity: 0; transform: translateX(0) scale(0.5); }
   64% { opacity: 0.92; }
@@ -230,8 +381,40 @@ const FieldRoot = styled.div`
   pointer-events: none;
   contain: strict;
 
+  ${({ $revealing }) =>
+    $revealing &&
+    css`
+      animation: ${fieldBreach} 130ms linear infinite;
+    `}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+
   @media (forced-colors: active) {
     display: none;
+  }
+`
+
+const FieldVisuals = styled.div`
+  position: absolute;
+  inset: -6vh -4vw;
+  filter: hue-rotate(${({ $scene }) => $scene * 11}deg)
+    saturate(${({ $scene }) => 0.94 + $scene * 0.035})
+    brightness(${({ $scene }) => 0.92 + $scene * 0.018});
+  transition: filter ${({ theme }) => theme.motion.duration.reveal}
+    ${({ theme }) => theme.motion.easing.enter};
+  will-change: transform, filter;
+
+  @supports (animation-timeline: scroll()) {
+    animation: ${fieldVoyage} linear both;
+    animation-timeline: scroll(root block);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    filter: none;
+    transform: none;
   }
 `
 
@@ -248,6 +431,22 @@ const ObservatoryFrame = styled.div`
     inset 0 0 1.4rem ${({ theme }) => theme.colors.effects.goldGlowSoft},
     0 0 1.4rem ${({ theme }) => theme.colors.effects.violetGlowSoft};
   pointer-events: none;
+  transform-origin: center;
+
+  ${({ $warming, $revealing, theme }) =>
+    ($warming || $revealing) &&
+    css`
+      border-color: ${theme.colors.border.filigreeBright};
+      box-shadow:
+        inset 0 0 2.2rem ${theme.colors.effects.goldGlowSoft},
+        0 0 1.5rem ${theme.colors.effects.goldGlow},
+        0 0 4rem ${theme.colors.effects.violetGlowSoft};
+      animation: ${frameAwakening}
+        ${$warming
+          ? `${EXPERIENCE_TRANSITION_TIMING.warmup}ms`
+          : `${EXPERIENCE_TRANSITION_TIMING.reveal}ms`}
+        ${theme.motion.easing.enter} both;
+    `}
 
   &::before {
     content: '';
@@ -283,6 +482,11 @@ const ObservatoryFrame = styled.div`
     &::after {
       display: none;
     }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    transform: none;
   }
 
   @media (forced-colors: active) {
@@ -493,6 +697,12 @@ const EtchedGrid = styled.div`
   background-size: 5rem 5rem, 5rem 5rem, 100% 100%;
   opacity: 0.12;
   mask-image: radial-gradient(circle at center, black, transparent 82%);
+
+  @supports (animation-timeline: scroll()) {
+    animation: ${gridVoyage} linear both;
+    animation-timeline: scroll(root block);
+    will-change: transform;
+  }
 `
 
 const SpectralFog = styled.div`
@@ -506,9 +716,9 @@ const SpectralFog = styled.div`
     radial-gradient(circle at 42% 44%, ${({ theme }) => theme.colors.effects.acidGlow} 0%, transparent 34%),
     radial-gradient(circle at 62% 58%, ${({ theme }) => theme.colors.effects.violetGlow} 0%, transparent 48%);
   filter: blur(4.5rem);
-  opacity: 0.42;
-  transform: translate(-50%, -50%);
-  transition: left 700ms ${({ theme }) => theme.motion.easing.enter}, top 700ms ${({ theme }) => theme.motion.easing.enter};
+  opacity: ${({ $scene }) => 0.32 + $scene * 0.035};
+  transform: translate(-50%, -50%) scale(${({ $scene }) => 0.9 + $scene * 0.035});
+  transition: left 700ms ${({ theme }) => theme.motion.easing.enter}, top 700ms ${({ theme }) => theme.motion.easing.enter}, opacity ${({ theme }) => theme.motion.duration.ritual} ${({ theme }) => theme.motion.easing.enter}, transform ${({ theme }) => theme.motion.duration.reveal} ${({ theme }) => theme.motion.easing.enter};
 
   @media (prefers-reduced-motion: reduce), (pointer: coarse) {
     left: 68%;
@@ -520,6 +730,12 @@ const SpectralFog = styled.div`
 const StarPlane = styled.div`
   position: absolute;
   inset: 0;
+
+  @supports (animation-timeline: scroll()) {
+    animation: ${starVoyage} linear both;
+    animation-timeline: scroll(root block);
+    will-change: transform;
+  }
 `
 
 const FieldStar = styled.span`
@@ -562,8 +778,10 @@ const GeometryAnchor = styled.div`
       ${({ $y }) => `${($y - 50) * 0.22}px`},
       0
     )
-    translate(-50%, -50%);
-  transition: transform 900ms ${({ theme }) => theme.motion.easing.enter};
+    translate(-50%, -50%)
+    rotate(${({ $scene }) => $scene * 9}deg)
+    scale(${({ $scene }) => 0.9 + $scene * 0.025});
+  transition: transform ${({ theme }) => theme.motion.duration.reveal} ${({ theme }) => theme.motion.easing.enter};
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     left: 82%;
@@ -592,6 +810,18 @@ const SacredGeometry = styled.svg`
   height: 100%;
   overflow: visible;
   filter: drop-shadow(0 0 1rem ${({ theme }) => theme.colors.effects.violetGlowSoft});
+
+  @supports (animation-timeline: scroll()) {
+    animation: ${geometryVoyage} linear both;
+    animation-timeline: scroll(root block);
+    will-change: translate, scale;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+    translate: none;
+    scale: none;
+  }
 `
 
 const GeometryOrbit = styled.circle`
@@ -655,56 +885,235 @@ const Comet = styled.div`
   }
 `
 
-const ProgressRail = styled.div`
+const ProgressRail = styled.nav`
   position: fixed;
   top: 50%;
-  right: max(0.7rem, ${({ theme }) => theme.layout.safeArea.right});
+  right: max(${({ theme }) => theme.spacing.md}, ${({ theme }) => theme.layout.safeArea.right});
+  z-index: ${({ theme }) => theme.zIndex.overlay};
   display: grid;
-  gap: ${({ theme }) => theme.spacing.sm};
+  gap: ${({ theme }) => theme.spacing.md};
   justify-items: center;
-  transform: translateY(-50%);
-  opacity: 0.72;
+  width: 3rem;
+  padding: ${({ theme }) => theme.spacing.lg} ${({ theme }) => theme.spacing.sm};
+  border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
+    ${({ theme, $engaged }) => ($engaged ? theme.colors.border.filigreeBright : theme.colors.border.surfaceRaised)};
+  border-radius: ${({ theme }) => theme.radii.pill};
+  background: linear-gradient(
+    180deg,
+    ${({ theme }) => theme.colors.background.glassViolet},
+    ${({ theme }) => theme.colors.background.glassInk}
+  );
+  box-shadow:
+    ${({ theme }) => theme.shadows.glass},
+    0 0 1.4rem ${({ theme }) => theme.colors.effects.violetGlowSoft},
+    0 0 2.2rem ${({ theme, $engaged }) => ($engaged ? theme.colors.effects.acidGlow : theme.colors.effects.goldGlowSoft)};
+  backdrop-filter: blur(1rem) saturate(1.25);
+  opacity: ${({ $engaged }) => ($engaged ? 0.96 : 0.34)};
+  transform: translateY(-50%) scale(${({ $engaged }) => ($engaged ? 1 : 0.96)});
+  transition: border-color ${({ theme }) => theme.transitions.base},
+    box-shadow ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
+    opacity ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter},
+    transform ${({ theme }) => theme.motion.duration.luxury} ${({ theme }) => theme.motion.easing.enter};
 
-  @media (max-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
+  &:hover,
+  &:focus-within {
+    opacity: 0.94;
+    transform: translateY(-50%) scale(1);
+    border-color: ${({ theme }) => theme.colors.border.filigreeBright};
+    box-shadow:
+      ${({ theme }) => theme.shadows.glass},
+      0 0 1.6rem ${({ theme }) => theme.colors.effects.violetGlowSoft},
+      0 0 2.4rem ${({ theme }) => theme.colors.effects.acidGlow};
+  }
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    width: 0.72rem;
+    aspect-ratio: 1;
+    border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
+      ${({ theme }) => theme.colors.accent.acidSoft};
+    background: ${({ theme }) => theme.colors.background.canvas};
+    box-shadow: 0 0 0.8rem ${({ theme }) => theme.colors.effects.acidGlow};
+    transform: translateX(-50%) rotate(45deg);
+  }
+
+  &::before { top: -0.36rem; }
+  &::after { bottom: -0.36rem; }
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
     display: none;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    transition: none;
   }
 `
 
 const RailTrack = styled.div`
   position: relative;
-  width: 1px;
-  height: 9rem;
+  width: ${({ theme }) => theme.borders.width.focus};
+  height: 12rem;
   background: ${({ theme }) => theme.colors.border.surfaceRaised};
+  box-shadow: 0 0 0.8rem ${({ theme }) => theme.colors.effects.goldGlowSoft};
 `
 
 const RailFill = styled.span`
   position: absolute;
-  inset: 0 0 auto;
-  height: ${({ $progress }) => `${$progress * 100}%`};
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: ${({ $controlled, $progress }) =>
+    $controlled ? 'calc(var(--atlas-progress) * 100%)' : `${$progress * 100}%`};
   background: linear-gradient(
     ${({ theme }) => theme.colors.accent.metal},
     ${({ theme }) => theme.colors.accent.acid}
   );
-  box-shadow: 0 0 0.5rem ${({ theme }) => theme.colors.effects.acidGlow};
+  filter: hue-rotate(${({ $scene }) => $scene * 11}deg);
+  transition: height ${({ theme }) => theme.transitions.fast},
+    filter ${({ theme }) => theme.motion.duration.ritual} ${({ theme }) => theme.motion.easing.enter};
+  box-shadow:
+    0 0 0.55rem ${({ theme }) => theme.colors.effects.acidGlow},
+    0 0 1.1rem ${({ theme }) => theme.colors.effects.cyanGlow};
 `
 
 const RailOrb = styled.span`
   position: absolute;
-  top: ${({ $progress }) => `${$progress * 100}%`};
+  top: ${({ $controlled, $progress }) =>
+    $controlled ? 'calc(var(--atlas-progress) * 100%)' : `${$progress * 100}%`};
   left: 50%;
-  width: 0.48rem;
+  z-index: 2;
+  width: 0.72rem;
   aspect-ratio: 1;
   border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
     ${({ theme }) => theme.colors.accent.acidSoft};
+  border-radius: ${({ theme }) => theme.radii.sm};
+  background: ${({ theme }) => theme.colors.accent.acidSoft};
+  box-shadow:
+    0 0 0.65rem ${({ theme }) => theme.colors.effects.acidGlow},
+    0 0 1.4rem ${({ theme }) => theme.colors.effects.cyanGlow},
+    0 0 2.4rem ${({ theme, $engaged }) => ($engaged ? theme.colors.effects.acidGlow : theme.colors.effects.violetGlowSoft)};
+  transform: translate(-50%, -50%) rotate(45deg);
+  transition: top ${({ theme }) => theme.transitions.fast};
+  will-change: top;
+
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 24%;
+    border-radius: ${({ theme }) => theme.radii.orbital};
+    background: ${({ theme }) => theme.colors.background.canvas};
+  }
+
+  ${({ $engaged }) =>
+    $engaged &&
+    css`
+      animation: ${crystalCharge} 720ms ease-in-out infinite;
+    `}
+`
+
+const RailDial = styled.span`
+  position: absolute;
+  top: ${({ $controlled, $progress }) =>
+    $controlled ? 'calc(var(--atlas-progress) * 100%)' : `${$progress * 100}%`};
+  left: 50%;
+  z-index: 1;
+  width: 1.75rem;
+  aspect-ratio: 1;
+  border: ${({ theme }) => theme.borders.width.thin} dashed
+    ${({ theme }) => theme.colors.accent.metalBright};
   border-radius: ${({ theme }) => theme.radii.orbital};
-  background: ${({ theme }) => theme.colors.background.canvas};
-  box-shadow: 0 0 0.7rem ${({ theme }) => theme.colors.effects.acidGlow};
+  box-shadow:
+    inset 0 0 0.7rem ${({ theme }) => theme.colors.effects.goldGlowSoft},
+    0 0 1.2rem ${({ theme }) => theme.colors.effects.violetGlowSoft};
   transform: translate(-50%, -50%);
+  transition: top ${({ theme }) => theme.transitions.fast};
+
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    inset: 0.28rem;
+    border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
+      ${({ theme }) => theme.colors.border.signal};
+    transform: rotate(45deg);
+  }
+
+  &::after { transform: rotate(90deg); }
+
+  ${({ $engaged, $direction }) =>
+    $engaged &&
+    css`
+      animation: ${$direction > 0 ? dialTurnForward : dialTurnBackward} 860ms
+        ${({ theme }) => theme.motion.easing.magnetic} both;
+    `}
+
+  @media (prefers-reduced-motion: reduce) {
+    animation: none;
+  }
+`
+
+const RailStop = styled.button`
+  position: absolute;
+  top: ${({ $position }) => `${$position * 100}%`};
+  left: 50%;
+  z-index: 3;
+  width: 1.35rem;
+  min-height: 0;
+  height: 1.35rem;
+  padding: 0;
+  border: 0;
+  border-radius: ${({ theme }) => theme.radii.orbital};
+  background: transparent;
+  transform: translate(-50%, -50%);
+
+  &::before {
+    content: '';
+    position: absolute;
+    inset: ${({ $active }) => ($active ? '0.3rem' : '0.46rem')};
+    border: ${({ theme }) => theme.borders.width.thin} ${({ theme }) => theme.borders.style}
+      ${({ theme, $active, $passed }) => ($active ? theme.colors.accent.acidSoft : $passed ? theme.colors.accent.metalBright : theme.colors.border.surfaceRaised)};
+    border-radius: ${({ theme }) => theme.radii.orbital};
+    background: ${({ theme, $active, $passed }) => ($active ? theme.colors.accent.acid : $passed ? theme.colors.accent.metal : theme.colors.background.canvas)};
+    box-shadow: ${({ theme, $active }) => ($active ? `0 0 1rem ${theme.colors.effects.acidGlow}` : 'none')};
+    transition: inset ${({ theme }) => theme.transitions.base},
+      background ${({ theme }) => theme.transitions.base},
+      border-color ${({ theme }) => theme.transitions.base},
+      box-shadow ${({ theme }) => theme.transitions.base};
+  }
+
+  &:hover::before,
+  &:focus-visible::before {
+    inset: 0.28rem;
+    border-color: ${({ theme }) => theme.colors.accent.acidSoft};
+    box-shadow: 0 0 1rem ${({ theme }) => theme.colors.effects.acidGlow};
+  }
 `
 
 const RailGlyph = styled.span`
-  color: ${({ theme }) => theme.colors.accent.metal};
+  color: ${({ theme }) => theme.colors.accent.metalBright};
   font-size: ${({ theme }) => theme.typography.fontSize.sm};
+  filter: drop-shadow(0 0 0.45rem ${({ theme }) => theme.colors.effects.goldGlow});
+`
+
+const RailTitle = styled.span`
+  color: ${({ theme }) => theme.colors.accent.acidSoft};
+  font-family: ${({ theme }) => theme.typography.fontFamily.mono};
+  font-size: ${({ theme }) => theme.typography.fontSize.micro};
+  letter-spacing: ${({ theme }) => theme.typography.letterSpacing.ceremonial};
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+`
+
+const RailReadout = styled.span`
+  color: ${({ theme }) => theme.colors.accent.signal};
+  font-family: ${({ theme }) => theme.typography.fontFamily.mono};
+  font-size: ${({ theme }) => theme.typography.fontSize.micro};
+  letter-spacing: ${({ theme }) => theme.typography.letterSpacing.wide};
+  white-space: nowrap;
+  writing-mode: vertical-rl;
 `
 
 const PhaseRail = styled.div`

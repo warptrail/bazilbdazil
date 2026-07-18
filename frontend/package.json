@@ -7,14 +7,19 @@
     "dev": "vite",
     "build": "vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "test:journey": "node scripts/verify-journey-math.mjs",
+    "preview": "vite preview",
+    "deploy": "node scripts/deploy.mjs",
+    "spell": "node scripts/spell.mjs",
+    "controlpanel": "node scripts/spell.mjs controlpanel"
   },
   "dependencies": {
     "@calcom/embed-react": "^1.5.3",
     "react": "^19.2.6",
     "react-dom": "^19.2.6",
     "react-router-dom": "^7.15.0",
-    "styled-components": "^6.4.1"
+    "styled-components": "^6.4.1",
+    "three": "^0.185.1"
   },
   "devDependencies": {
     "@babel/core": "^7.29.0",
