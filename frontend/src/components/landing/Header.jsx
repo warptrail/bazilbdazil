@@ -323,7 +323,10 @@ const HeaderFrame = styled.div`
   );
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    height: ${({ theme }) => theme.layout.compactHeaderOffset};
+    height: calc(
+      ${({ theme }) => theme.layout.compactHeaderOffset} +
+        ${({ theme }) => theme.spacing.md}
+    );
   }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
@@ -438,7 +441,7 @@ const HeaderInner = styled(Container)`
   }
 
   @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
-    gap: ${({ theme }) => theme.spacing.xs} ${({ theme }) => theme.spacing.md};
+    gap: ${({ theme }) => theme.spacing.md};
     min-height: ${({ theme }) => theme.layout.compactHeaderOffset};
     padding: ${({ theme }) => theme.spacing.sm} max(
       ${({ theme }) => theme.spacing.md},
@@ -700,6 +703,10 @@ const HeaderActions = styled.div`
   align-items: center;
   justify-content: flex-end;
   gap: ${({ theme }) => theme.spacing.sm};
+
+  @media (max-width: ${({ theme }) => theme.layout.breakpoints.narrow}) {
+    padding-inline-end: ${({ theme }) => theme.spacing.sm};
+  }
 
   @media (min-width: ${({ theme }) => theme.layout.breakpoints.wide}) {
     gap: ${({ theme }) => theme.spacing.md};
